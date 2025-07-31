@@ -1,0 +1,263 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  background: #0f0f23;
+  overflow: hidden;
+  color: white;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* Game HUD Styles */
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  font-family: "Courier New", monospace;
+}
+
+.hud-top-left {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.hud-top-right {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.health-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.health-bar {
+  background: rgba(255, 0, 0, 0.3);
+  border: 2px solid #ff0000;
+  width: 200px;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.health-fill {
+  background: linear-gradient(90deg, #44ff44, #00ff00);
+  height: 100%;
+  width: 100%;
+  transition: width 0.3s ease, background 0.3s ease;
+  border-radius: 8px;
+}
+
+.health-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  min-width: 80px;
+}
+
+.score-container,
+.wave-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.score-label,
+.wave-label {
+  color: #aaaaaa;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.score-value,
+.wave-value {
+  color: #00ff88;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  min-width: 50px;
+}
+
+.wave-status {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.wave-status-text {
+  color: #ffaa00;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.enemy-count {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.enemy-count-text {
+  color: #ff4444;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.next-wave-timer {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #00ff88;
+  border-radius: 8px;
+  padding: 10px 15px;
+  text-align: center;
+}
+
+.timer-label {
+  color: #aaaaaa;
+  font-size: 14px;
+  display: block;
+}
+
+.timer-value {
+  color: #00ff88;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Crosshair */
+.hud-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.crosshair {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.crosshair::before,
+.crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+}
+
+.crosshair::before {
+  width: 2px;
+  height: 20px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.crosshair::after {
+  width: 20px;
+  height: 2px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+/* Damage Indicator */
+.damage-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 0, 0, 0.3) 0%, transparent 70%);
+  animation: damageFlash 0.5s ease-out;
+  pointer-events: none;
+}
+
+@keyframes damageFlash {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+/* Health regeneration glow effect */
+.health-fill.regenerating {
+  animation: healthRegen 1s ease-in-out infinite alternate;
+}
+
+@keyframes healthRegen {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+  }
+}
+
+/* Low health warning */
+.health-bar.low-health {
+  animation: lowHealthPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes lowHealthPulse {
+  0% {
+    border-color: #ff0000;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+  }
+  100% {
+    border-color: #ff4444;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+  }
+}
+
+/* Wave complete celebration effect */
+.wave-status-text.wave-complete {
+  animation: waveComplete 0.5s ease-out;
+  color: #00ff88 !important;
+}
+
+@keyframes waveComplete {
+  0% {
+    transform: scale(1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    transform: scale(1.2);
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+}
