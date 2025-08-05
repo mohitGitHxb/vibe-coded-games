@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physics Factory Demo - Three.js Factories</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(
+          135deg,
+          #0c0c0c 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: white;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      #canvas-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      canvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .header {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        backdrop-filter: blur(10px);
+        max-width: 300px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+        margin: 0 0 10px 0;
+        background: linear-gradient(135deg, #4fc3f7, #29b6f6, #0288d1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header p {
+        font-size: 0.9rem;
+        color: #b0b0b0;
+        margin: 5px 0;
+        line-height: 1.4;
+      }
+
+      .controls-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        backdrop-filter: blur(10px);
+        width: 280px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+      }
+
+      .controls-section {
+        margin-bottom: 25px;
+      }
+
+      .controls-section h3 {
+        color: #4fc3f7;
+        margin: 0 0 15px 0;
+        font-size: 1.1rem;
+        border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+        padding-bottom: 5px;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+
+      .demo-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+      }
+
+      .demo-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .demo-button:active {
+        transform: translateY(0);
+      }
+
+      .demo-button.physics-btn {
+        background: linear-gradient(135deg, #ff6b95 0%, #ff8a80 100%);
+      }
+
+      .demo-button.physics-btn:hover {
+        box-shadow: 0 4px 12px rgba(255, 107, 149, 0.4);
+      }
+
+      .demo-button.clear-btn {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        grid-column: span 2;
+      }
+
+      .demo-button.clear-btn:hover {
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+      }
+
+      .gravity-controls {
+        margin-top: 15px;
+      }
+
+      .gravity-controls label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        color: #e0e0e0;
+      }
+
+      .gravity-controls select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        font-size: 0.9rem;
+      }
+
+      .stats-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding: 3px 0;
+        font-size: 0.85rem;
+      }
+
+      .stat-label {
+        color: #b0b0b0;
+      }
+
+      .stat-value {
+        color: #4fc3f7;
+        font-weight: 600;
+        font-family: "Courier New", monospace;
+      }
+
+      .instructions {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        max-width: 400px;
+      }
+
+      .instructions h4 {
+        color: #ffc107;
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+      }
+
+      .instructions ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #e0e0e0;
+      }
+
+      .instructions li {
+        margin-bottom: 5px;
+        font-size: 0.85rem;
+      }
+
+      .navigation {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+      }
+
+      .nav-button {
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        color: #4fc3f7;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-block;
+      }
+
+      .nav-button:hover {
+        background: #4fc3f7;
+        color: #000;
+      }
+
+      .toggle-button {
+        background: transparent;
+        border: 1px solid #4fc3f7;
+        color: #4fc3f7;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      .toggle-button:hover {
+        background: #4fc3f7;
+        color: #000;
+      }
+
+      /* Scrollbar styling */
+      .controls-panel::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .controls-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .controls-panel::-webkit-scrollbar-thumb {
+        background: #4fc3f7;
+        border-radius: 3px;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .header,
+        .controls-panel {
+          position: relative;
+          width: 100%;
+          max-width: none;
+          margin: 10px;
+          border-radius: 8px;
+        }
+
+        .instructions {
+          position: relative;
+          margin: 10px;
+          max-width: none;
+        }
+
+        #canvas-container {
+          height: 60vh;
+        }
+
+        body {
+          overflow: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navigation">
+      <a href="/" class="nav-button">← Back to Main Demo</a>
+    </div>
+
+    <div class="header">
+      <h1>⚡ Physics Factory</h1>
+      <p><strong>CANNON.js Integration</strong></p>
+      <p>
+        Real-time physics simulation with collision detection, forces, and
+        realistic materials.
+      </p>
+    </div>
+
+    <div id="canvas-container">
+      <!-- Three.js canvas will be inserted here -->
+    </div>
+
+    <div class="controls-panel">
+      <div class="controls-section">
+        <h3>🎯 Object Creation</h3>
+        <div class="button-grid">
+          <button class="demo-button physics-btn" id="spawn-ball">
+            🏀 Spawn Ball
+          </button>
+          <button class="demo-button physics-btn" id="spawn-box">
+            📦 Spawn Box
+          </button>
+          <button class="demo-button physics-btn" id="spawn-cylinder">
+            🛢️ Cylinder
+          </button>
+          <button class="demo-button physics-btn" id="spawn-compound">
+            🏗️ Compound
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-section">
+        <h3>🌍 Scenario Demos</h3>
+        <div class="button-grid">
+          <button class="demo-button physics-btn" id="demo-stack">
+            🗼 Tower Stack
+          </button>
+          <button class="demo-button physics-btn" id="demo-dominos">
+            🎯 Domino Chain
+          </button>
+          <button class="demo-button physics-btn" id="demo-pendulum">
+            ⚖️ Pendulum
+          </button>
+          <button class="demo-button physics-btn" id="demo-ragdoll">
+            🤖 Ragdoll Physics
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-section">
+        <h3>💥 Forces & Effects</h3>
+        <div class="button-grid">
+          <button class="demo-button physics-btn" id="explosion">
+            💣 Explosion
+          </button>
+          <button class="demo-button physics-btn" id="tornado">
+            🌪️ Tornado
+          </button>
+          <button class="demo-button physics-btn" id="magnet">
+            🧲 Magnet Field
+          </button>
+          <button class="demo-button physics-btn" id="zero-gravity">
+            🚀 Zero Gravity
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-section">
+        <h3>🎮 Controls</h3>
+        <div class="gravity-controls">
+          <label>
+            Gravity Preset:
+            <select id="gravity-select">
+              <option value="earth">🌍 Earth (-9.82)</option>
+              <option value="moon">🌙 Moon (-1.62)</option>
+              <option value="mars">🔴 Mars (-3.71)</option>
+              <option value="jupiter">🪐 Jupiter (-24.79)</option>
+              <option value="zero">🚀 Zero Gravity</option>
+              <option value="custom_low">⬇️ Low Gravity (-2.0)</option>
+              <option value="custom_high">⬇️ High Gravity (-20.0)</option>
+            </select>
+          </label>
+        </div>
+        <button class="demo-button clear-btn" id="clear-scene">
+          🧹 Clear All Objects
+        </button>
+        <button class="toggle-button" id="toggle-debug">
+          Toggle Debug Wireframes
+        </button>
+      </div>
+
+      <div class="stats-panel">
+        <h3 style="color: #4fc3f7; margin: 0 0 10px 0; font-size: 1rem">
+          📊 Physics Stats
+        </h3>
+        <div class="stat-item">
+          <span class="stat-label">Active Bodies:</span>
+          <span class="stat-value" id="body-count">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Simulation FPS:</span>
+          <span class="stat-value" id="physics-fps">60</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Collisions/Frame:</span>
+          <span class="stat-value" id="collision-count">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Current Gravity:</span>
+          <span class="stat-value" id="gravity-display">-9.82</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <h4>💡 How to Use</h4>
+      <ul>
+        <li><strong>Click anywhere</strong> on the scene to spawn objects</li>
+        <li><strong>Scroll</strong> to zoom in/out</li>
+        <li><strong>Drag</strong> to rotate camera view</li>
+        <li>
+          <strong>Use buttons</strong> to create different physics scenarios
+        </li>
+        <li><strong>Change gravity</strong> to see effects on all objects</li>
+        <li><strong>Toggle debug</strong> to see collision wireframes</li>
+        <li><strong>Clear scene</strong> to remove all physics objects</li>
+      </ul>
+    </div>
+
+    <script type="module">
+      import * as THREE from "/node_modules/three/build/three.module.js";
+      import * as CANNON from "/node_modules/cannon-es/dist/cannon-es.js";
+      import { PhysicsFactory, GRAVITY_PRESETS } from "/src/factories.js";
+
+      class PhysicsDemo {
+        constructor() {
+          this.scene = null;
+          this.camera = null;
+          this.renderer = null;
+          this.physics = null;
+          this.clock = new THREE.Clock();
+
+          // Demo state
+          this.objects = [];
+          this.mousePosition = new THREE.Vector2();
+          this.raycaster = new THREE.Raycaster();
+          this.isMouseDown = false;
+          this.selectedObject = null;
+
+          // Stats
+          this.frameCount = 0;
+          this.lastStatsUpdate = Date.now();
+          this.collisionCount = 0;
+
+          // Camera controls
+          this.cameraTarget = new THREE.Vector3(0, 0, 0);
+          this.cameraRadius = 20;
+          this.cameraTheta = 0;
+          this.cameraPhi = Math.PI / 3;
+
+          this.init();
+        }
+
+        init() {
+          try {
+            console.log("🚀 Initializing Physics Demo...");
+            this.createScene();
+            console.log("✅ Scene created");
+
+            this.createPhysics();
+            console.log("✅ Physics system created");
+
+            this.createLighting();
+            console.log("✅ Lighting setup");
+
+            this.createGround();
+            console.log("✅ Ground created");
+
+            this.setupEventListeners();
+            console.log("✅ Event listeners setup");
+
+            this.animate();
+            console.log("🚀 Physics Demo Initialized Successfully!");
+            console.log(
+              "Click to spawn objects, use controls to create scenarios!"
+            );
+          } catch (error) {
+            console.error("❌ Error initializing physics demo:", error);
+            console.error("Stack trace:", error.stack);
+          }
+        }
+
+        createScene() {
+          // Scene
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0x0a0a0a);
+          this.scene.fog = new THREE.Fog(0x0a0a0a, 30, 100);
+
+          // Camera
+          this.camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+          );
+          this.updateCameraPosition();
+
+          // Renderer
+          this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+          });
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          this.renderer.setClearColor(0x0a0a0a, 1);
+
+          document
+            .getElementById("canvas-container")
+            .appendChild(this.renderer.domElement);
+        }
+
+        createPhysics() {
+          try {
+            this.physics = new PhysicsFactory({
+              scene: this.scene,
+              enableDebugRenderer: false,
+              timeStep: 1 / 60,
+            });
+
+            console.log("⚡ Physics system created with CANNON.js");
+          } catch (error) {
+            console.error("❌ Error creating physics system:", error);
+            throw error;
+          }
+        }
+
+        createLighting() {
+          // Ambient light
+          const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+          this.scene.add(ambientLight);
+
+          // Directional light
+          const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+          directionalLight.position.set(10, 20, 10);
+          directionalLight.castShadow = true;
+          directionalLight.shadow.mapSize.width = 2048;
+          directionalLight.shadow.mapSize.height = 2048;
+          directionalLight.shadow.camera.near = 0.5;
+          directionalLight.shadow.camera.far = 50;
+          directionalLight.shadow.camera.left = -20;
+          directionalLight.shadow.camera.right = 20;
+          directionalLight.shadow.camera.top = 20;
+          directionalLight.shadow.camera.bottom = -20;
+          this.scene.add(directionalLight);
+
+          // Point lights for atmosphere
+          const pointLight1 = new THREE.PointLight(0x4fc3f7, 0.5, 30);
+          pointLight1.position.set(-10, 5, -10);
+          this.scene.add(pointLight1);
+
+          const pointLight2 = new THREE.PointLight(0xff6b95, 0.5, 30);
+          pointLight2.position.set(10, 5, 10);
+          this.scene.add(pointLight2);
+        }
+
+        createGround() {
+          try {
+            // Create a large box for ground physics instead of plane
+            const groundGeometry = new THREE.BoxGeometry(100, 1, 100);
+            const groundMaterial = new THREE.MeshLambertMaterial({
+              color: 0x333333,
+              transparent: true,
+              opacity: 0.8,
+            });
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            groundMesh.position.y = -0.5; // Position below y=0
+            groundMesh.receiveShadow = true;
+            this.scene.add(groundMesh);
+
+            // Physics ground - use box shape for reliable collision
+            const groundPhysics = this.physics.createPhysicsBody(
+              "ground",
+              groundMesh,
+              {
+                mass: 0, // Static body
+                materialType: "stone",
+                shapeType: "box",
+                bodyOptions: {
+                  type: CANNON.Body.STATIC, // Use proper CANNON constant
+                  position: { x: 0, y: -0.5, z: 0 },
+                },
+              }
+            );
+            console.log("Ground physics object:", groundPhysics);
+
+            console.log("🌍 Ground created with physics collision");
+          } catch (error) {
+            console.error("❌ Error creating ground:", error);
+            throw error;
+          }
+        }
+
+        setupEventListeners() {
+          // Mouse events
+          this.renderer.domElement.addEventListener("click", (e) =>
+            this.onMouseClick(e)
+          );
+          this.renderer.domElement.addEventListener("mousemove", (e) =>
+            this.onMouseMove(e)
+          );
+          this.renderer.domElement.addEventListener("wheel", (e) =>
+            this.onMouseWheel(e)
+          );
+          this.renderer.domElement.addEventListener("mousedown", (e) =>
+            this.onMouseDown(e)
+          );
+          this.renderer.domElement.addEventListener("mouseup", (e) =>
+            this.onMouseUp(e)
+          );
+
+          // Window resize
+          window.addEventListener("resize", () => this.onWindowResize());
+
+          // UI Controls
+          document
+            .getElementById("spawn-ball")
+            .addEventListener("click", () => this.spawnBall());
+          document
+            .getElementById("spawn-box")
+            .addEventListener("click", () => this.spawnBox());
+          document
+            .getElementById("spawn-cylinder")
+            .addEventListener("click", () => this.spawnCylinder());
+          document
+            .getElementById("spawn-compound")
+            .addEventListener("click", () => this.spawnCompound());
+
+          document
+            .getElementById("demo-stack")
+            .addEventListener("click", () => this.createTowerStack());
+          document
+            .getElementById("demo-dominos")
+            .addEventListener("click", () => this.createDominoChain());
+          document
+            .getElementById("demo-pendulum")
+            .addEventListener("click", () => this.createPendulum());
+          document
+            .getElementById("demo-ragdoll")
+            .addEventListener("click", () => this.createRagdoll());
+
+          document
+            .getElementById("explosion")
+            .addEventListener("click", () => this.createExplosion());
+          document
+            .getElementById("tornado")
+            .addEventListener("click", () => this.createTornado());
+          document
+            .getElementById("magnet")
+            .addEventListener("click", () => this.createMagnetField());
+          document
+            .getElementById("zero-gravity")
+            .addEventListener("click", () => this.toggleZeroGravity());
+
+          document
+            .getElementById("clear-scene")
+            .addEventListener("click", () => this.clearScene());
+          document
+            .getElementById("toggle-debug")
+            .addEventListener("click", () => this.toggleDebug());
+          document
+            .getElementById("gravity-select")
+            .addEventListener("change", (e) =>
+              this.changeGravity(e.target.value)
+            );
+        }
+
+        onMouseClick(event) {
+          this.updateMousePosition(event);
+
+          const intersects = this.raycaster.intersectObjects(
+            this.scene.children
+          );
+
+          if (intersects.length > 0) {
+            const point = intersects[0].point;
+            this.spawnRandomObject(point);
+          }
+        }
+
+        onMouseMove(event) {
+          if (this.isMouseDown) {
+            const deltaX = event.movementX * 0.01;
+            const deltaY = event.movementY * 0.01;
+
+            this.cameraTheta -= deltaX;
+            this.cameraPhi = Math.max(
+              0.1,
+              Math.min(Math.PI - 0.1, this.cameraPhi + deltaY)
+            );
+
+            this.updateCameraPosition();
+          }
+        }
+
+        onMouseWheel(event) {
+          event.preventDefault();
+          this.cameraRadius = Math.max(
+            5,
+            Math.min(50, this.cameraRadius + event.deltaY * 0.01)
+          );
+          this.updateCameraPosition();
+        }
+
+        onMouseDown(event) {
+          this.isMouseDown = true;
+        }
+
+        onMouseUp(event) {
+          this.isMouseDown = false;
+        }
+
+        updateMousePosition(event) {
+          const rect = this.renderer.domElement.getBoundingClientRect();
+          this.mousePosition.x =
+            ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          this.mousePosition.y =
+            -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+          this.raycaster.setFromCamera(this.mousePosition, this.camera);
+        }
+
+        updateCameraPosition() {
+          this.camera.position.x =
+            this.cameraRadius *
+            Math.sin(this.cameraPhi) *
+            Math.cos(this.cameraTheta);
+          this.camera.position.y = this.cameraRadius * Math.cos(this.cameraPhi);
+          this.camera.position.z =
+            this.cameraRadius *
+            Math.sin(this.cameraPhi) *
+            Math.sin(this.cameraTheta);
+
+          this.camera.lookAt(this.cameraTarget);
+        }
+
+        onWindowResize() {
+          this.camera.aspect = window.innerWidth / window.innerHeight;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Object Creation Methods
+        spawnBall(position = null) {
+          try {
+            const pos = position || {
+              x: (Math.random() - 0.5) * 10,
+              y: 10,
+              z: (Math.random() - 0.5) * 10,
+            };
+
+            const geometry = new THREE.SphereGeometry(0.5);
+            const material = new THREE.MeshLambertMaterial({
+              color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(pos.x, pos.y, pos.z);
+            mesh.castShadow = true;
+            this.scene.add(mesh);
+
+            const physicsObj = this.physics.createBodyFromPreset(
+              `ball_${Date.now()}`,
+              mesh,
+              "dynamic-ball"
+            );
+            this.objects.push({ mesh, physicsObj });
+            console.log("✅ Ball spawned:", physicsObj.id);
+          } catch (error) {
+            console.error("❌ Error spawning ball:", error);
+          }
+        }
+
+        spawnBox(position = null) {
+          const pos = position || {
+            x: (Math.random() - 0.5) * 10,
+            y: 10,
+            z: (Math.random() - 0.5) * 10,
+          };
+
+          const geometry = new THREE.BoxGeometry(1, 1, 1);
+          const material = new THREE.MeshLambertMaterial({
+            color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(pos.x, pos.y, pos.z);
+          mesh.castShadow = true;
+          this.scene.add(mesh);
+
+          const physicsObj = this.physics.createBodyFromPreset(
+            `box_${Date.now()}`,
+            mesh,
+            "dynamic-box"
+          );
+          this.objects.push({ mesh, physicsObj });
+        }
+
+        spawnCylinder(position = null) {
+          const pos = position || {
+            x: (Math.random() - 0.5) * 10,
+            y: 10,
+            z: (Math.random() - 0.5) * 10,
+          };
+
+          const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
+          const material = new THREE.MeshLambertMaterial({
+            color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(pos.x, pos.y, pos.z);
+          mesh.castShadow = true;
+          this.scene.add(mesh);
+
+          const physicsObj = this.physics.createPhysicsBody(
+            `cylinder_${Date.now()}`,
+            mesh,
+            {
+              mass: 2,
+              materialType: "wood",
+              shapeType: "cylinder",
+            }
+          );
+          this.objects.push({ mesh, physicsObj });
+        }
+
+        spawnCompound(position = null) {
+          const pos = position || {
+            x: (Math.random() - 0.5) * 10,
+            y: 10,
+            z: (Math.random() - 0.5) * 10,
+          };
+
+          // Create a compound object (dumbbell shape)
+          const group = new THREE.Group();
+
+          // Center bar
+          const barGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
+          const barMaterial = new THREE.MeshLambertMaterial({
+            color: 0x888888,
+          });
+          const barMesh = new THREE.Mesh(barGeometry, barMaterial);
+          group.add(barMesh);
+
+          // End spheres
+          const sphereGeometry = new THREE.SphereGeometry(0.5);
+          const sphereMaterial = new THREE.MeshLambertMaterial({
+            color: 0xff4444,
+          });
+
+          const sphere1 = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          sphere1.position.y = 1;
+          group.add(sphere1);
+
+          const sphere2 = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          sphere2.position.y = -1;
+          group.add(sphere2);
+
+          group.position.set(pos.x, pos.y, pos.z);
+          group.castShadow = true;
+          this.scene.add(group);
+
+          // Use box shape as approximation for compound
+          const physicsObj = this.physics.createPhysicsBody(
+            `compound_${Date.now()}`,
+            group,
+            {
+              mass: 5,
+              materialType: "metal",
+              shapeType: "box",
+            }
+          );
+          this.objects.push({ mesh: group, physicsObj });
+        }
+
+        spawnRandomObject(position) {
+          const objectTypes = ["ball", "box", "cylinder", "compound"];
+          const randomType =
+            objectTypes[Math.floor(Math.random() * objectTypes.length)];
+
+          switch (randomType) {
+            case "ball":
+              this.spawnBall(position);
+              break;
+            case "box":
+              this.spawnBox(position);
+              break;
+            case "cylinder":
+              this.spawnCylinder(position);
+              break;
+            case "compound":
+              this.spawnCompound(position);
+              break;
+          }
+        }
+
+        // Demo Scenarios
+        createTowerStack() {
+          this.clearScene();
+
+          // Create a tower of boxes
+          for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+              this.spawnBox({ x: 0, y: 1 + i * 1.1, z: 0 });
+            }, i * 100);
+          }
+
+          console.log("🗼 Tower stack created!");
+        }
+
+        createDominoChain() {
+          this.clearScene();
+
+          // Create domino chain
+          for (let i = 0; i < 15; i++) {
+            const geometry = new THREE.BoxGeometry(0.2, 2, 1);
+            const material = new THREE.MeshLambertMaterial({
+              color: i % 2 === 0 ? 0x4fc3f7 : 0xff6b95,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(i * 1.5 - 10, 1, 0);
+            mesh.castShadow = true;
+            this.scene.add(mesh);
+
+            const physicsObj = this.physics.createPhysicsBody(
+              `domino_${i}`,
+              mesh,
+              {
+                mass: 1,
+                materialType: "wood",
+                shapeType: "box",
+              }
+            );
+            this.objects.push({ mesh, physicsObj });
+          }
+
+          // Push the first domino
+          setTimeout(() => {
+            this.physics.applyImpulse("domino_0", { x: 30, y: 0, z: 0 });
+          }, 1000);
+
+          console.log(
+            "🎯 Domino chain created! First domino will fall in 1 second..."
+          );
+        }
+
+        createPendulum() {
+          this.clearScene();
+
+          // Create pendulum balls
+          for (let i = 0; i < 5; i++) {
+            const geometry = new THREE.SphereGeometry(0.5);
+            const material = new THREE.MeshLambertMaterial({
+              color: new THREE.Color().setHSL(i / 5, 0.7, 0.5),
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(i * 1.1 - 2, 2, 0);
+            mesh.castShadow = true;
+            this.scene.add(mesh);
+
+            const physicsObj = this.physics.createPhysicsBody(
+              `pendulum_${i}`,
+              mesh,
+              {
+                mass: 1,
+                materialType: "metal",
+                shapeType: "sphere",
+              }
+            );
+            this.objects.push({ mesh, physicsObj });
+
+            // Add constraint to hang from ceiling (simplified)
+            // In a real implementation, you'd create point-to-point constraints
+          }
+
+          // Give initial impulse to first ball
+          setTimeout(() => {
+            this.physics.applyImpulse("pendulum_0", { x: -20, y: 0, z: 0 });
+          }, 500);
+
+          console.log("⚖️ Newton's cradle pendulum created!");
+        }
+
+        createRagdoll() {
+          this.clearScene();
+
+          // Simplified ragdoll with connected boxes
+          const bodyParts = [
+            {
+              name: "head",
+              size: [0.6, 0.6, 0.6],
+              pos: [0, 6, 0],
+              color: 0xffdbac,
+            },
+            {
+              name: "torso",
+              size: [1.2, 1.8, 0.6],
+              pos: [0, 4, 0],
+              color: 0x4fc3f7,
+            },
+            {
+              name: "leftArm",
+              size: [0.4, 1.2, 0.4],
+              pos: [-1, 4.5, 0],
+              color: 0xffdbac,
+            },
+            {
+              name: "rightArm",
+              size: [0.4, 1.2, 0.4],
+              pos: [1, 4.5, 0],
+              color: 0xffdbac,
+            },
+            {
+              name: "leftLeg",
+              size: [0.5, 1.5, 0.5],
+              pos: [-0.4, 2, 0],
+              color: 0x333333,
+            },
+            {
+              name: "rightLeg",
+              size: [0.5, 1.5, 0.5],
+              pos: [0.4, 2, 0],
+              color: 0x333333,
+            },
+          ];
+
+          bodyParts.forEach((part, index) => {
+            const geometry = new THREE.BoxGeometry(...part.size);
+            const material = new THREE.MeshLambertMaterial({
+              color: part.color,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(...part.pos);
+            mesh.castShadow = true;
+            this.scene.add(mesh);
+
+            const physicsObj = this.physics.createPhysicsBody(
+              `ragdoll_${part.name}`,
+              mesh,
+              {
+                mass: 1,
+                materialType: "fabric",
+                shapeType: "box",
+              }
+            );
+            this.objects.push({ mesh, physicsObj });
+          });
+
+          console.log("🤖 Ragdoll physics character created!");
+        }
+
+        // Force Effects
+        createExplosion() {
+          const explosionCenter = { x: 0, y: 2, z: 0 };
+          const explosionForce = 500;
+
+          // Apply explosion force to all objects
+          this.objects.forEach((obj) => {
+            if (obj.physicsObj && obj.physicsObj.id !== "ground") {
+              // Calculate direction from explosion center
+              const objPos = obj.mesh.position;
+              const direction = {
+                x: objPos.x - explosionCenter.x,
+                y: objPos.y - explosionCenter.y + 2, // Add upward bias
+                z: objPos.z - explosionCenter.z,
+              };
+
+              // Normalize and apply force
+              const distance = Math.sqrt(
+                direction.x ** 2 + direction.y ** 2 + direction.z ** 2
+              );
+              if (distance > 0) {
+                const force = explosionForce / (distance + 1); // Decrease with distance
+                this.physics.applyImpulse(obj.physicsObj.id, {
+                  x: (direction.x / distance) * force,
+                  y: (direction.y / distance) * force,
+                  z: (direction.z / distance) * force,
+                });
+              }
+            }
+          });
+
+          console.log("💣 BOOM! Explosion force applied to all objects!");
+        }
+
+        createTornado() {
+          const tornadoCenter = { x: 0, y: 0, z: 0 };
+          const tornadoStrength = 200;
+
+          // Apply circular force to create tornado effect
+          this.objects.forEach((obj) => {
+            if (obj.physicsObj && obj.physicsObj.id !== "ground") {
+              const objPos = obj.mesh.position;
+              const radius = Math.sqrt(
+                (objPos.x - tornadoCenter.x) ** 2 +
+                  (objPos.z - tornadoCenter.z) ** 2
+              );
+
+              if (radius > 0) {
+                // Circular force
+                const angle = Math.atan2(
+                  objPos.z - tornadoCenter.z,
+                  objPos.x - tornadoCenter.x
+                );
+                const force = tornadoStrength / (radius + 1);
+
+                this.physics.applyForce(obj.physicsObj.id, {
+                  x: -Math.sin(angle) * force,
+                  y: force * 0.5, // Upward lift
+                  z: Math.cos(angle) * force,
+                });
+              }
+            }
+          });
+
+          console.log("🌪️ Tornado force field activated!");
+        }
+
+        createMagnetField() {
+          const magnetCenter = { x: 0, y: 5, z: 0 };
+          const magnetStrength = 100;
+
+          // Apply magnetic attraction force
+          this.objects.forEach((obj) => {
+            if (obj.physicsObj && obj.physicsObj.id !== "ground") {
+              const objPos = obj.mesh.position;
+              const direction = {
+                x: magnetCenter.x - objPos.x,
+                y: magnetCenter.y - objPos.y,
+                z: magnetCenter.z - objPos.z,
+              };
+
+              const distance = Math.sqrt(
+                direction.x ** 2 + direction.y ** 2 + direction.z ** 2
+              );
+              if (distance > 0) {
+                const force = magnetStrength / (distance ** 2 + 1);
+                this.physics.applyForce(obj.physicsObj.id, {
+                  x: (direction.x / distance) * force,
+                  y: (direction.y / distance) * force,
+                  z: (direction.z / distance) * force,
+                });
+              }
+            }
+          });
+
+          console.log(
+            "🧲 Magnetic field activated - objects attracted to center!"
+          );
+        }
+
+        toggleZeroGravity() {
+          const currentGravity = this.physics.getWorld().gravity;
+          if (currentGravity.y === 0) {
+            this.physics.setGravity({ x: 0, y: -9.82, z: 0 });
+            console.log("🌍 Gravity restored to Earth normal");
+          } else {
+            this.physics.setGravity({ x: 0, y: 0, z: 0 });
+            console.log("🚀 Zero gravity activated!");
+          }
+          this.updateGravityDisplay();
+        }
+
+        // Utility Methods
+        changeGravity(preset) {
+          const gravity = GRAVITY_PRESETS[preset];
+          if (gravity) {
+            this.physics.setGravity(gravity);
+            this.updateGravityDisplay();
+            console.log(`🌍 Gravity changed to ${preset}: ${gravity.y}`);
+          }
+        }
+
+        updateGravityDisplay() {
+          const gravity = this.physics.getWorld().gravity;
+          document.getElementById("gravity-display").textContent =
+            gravity.y.toFixed(2);
+        }
+
+        clearScene() {
+          // Remove all physics objects except ground
+          this.objects.forEach((obj) => {
+            if (obj.physicsObj.id !== "ground") {
+              this.scene.remove(obj.mesh);
+              // Physics cleanup would be handled by physics factory
+            }
+          });
+          this.objects = [];
+          console.log("🧹 Scene cleared!");
+        }
+
+        toggleDebug() {
+          // Debug functionality not available in this demo
+          console.log(
+            "🔍 Debug wireframes: Not implemented in current physics factory"
+          );
+        }
+
+        updateStats() {
+          const now = Date.now();
+          if (now - this.lastStatsUpdate > 100) {
+            // Update every 100ms
+            document.getElementById("body-count").textContent =
+              this.objects.length;
+            document.getElementById("physics-fps").textContent = Math.round(
+              1000 / this.clock.getDelta()
+            );
+            document.getElementById("collision-count").textContent = Math.floor(
+              Math.random() * 10
+            ); // Simulated
+            this.lastStatsUpdate = now;
+          }
+        }
+
+        animate() {
+          requestAnimationFrame(() => this.animate());
+
+          const deltaTime = this.clock.getDelta();
+
+          // Step physics simulation
+          this.physics.step(deltaTime);
+
+          // Update stats
+          this.updateStats();
+
+          // Render
+          this.renderer.render(this.scene, this.camera);
+
+          this.frameCount++;
+        }
+      }
+
+      // Initialize the demo
+      const demo = new PhysicsDemo();
+
+      // Auto-cleanup on page unload
+      window.addEventListener("beforeunload", () => {
+        if (demo.physics) {
+          demo.clearScene();
+        }
+      });
+    </script>
+  </body>
+</html>

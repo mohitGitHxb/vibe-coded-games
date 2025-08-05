@@ -47,6 +47,7 @@
 // === FACTORY EXPORTS ===
 export { MaterialFactory } from "./materials/index.js";
 export { AudioFactory } from "./audios/index.js";
+export { PhysicsFactory } from "./physics/index.js";
 export { InputManager } from "./input/index.js";
 
 // === TYPE EXPORTS ===
@@ -79,6 +80,19 @@ export type {
   InputBinding,
 } from "./input/types/InputTypes.js";
 
+export type {
+  Vector3Like,
+  PhysicsObject,
+  PhysicsFactoryOptions,
+  PhysicsBodyOptions,
+  PhysicsShapeType,
+  PhysicsMaterialType,
+  RaycastOptions,
+  RaycastResult,
+  TriggerZoneOptions,
+  PhysicsBodyPresetType,
+} from "./physics/types/PhysicsTypes.js";
+
 // === ENUM EXPORTS ===
 export { MaterialType } from "./materials/types/MaterialTypes.js";
 export { SoundType } from "./audios/types/AudioTypes.js";
@@ -105,9 +119,20 @@ export {
   DEADZONE_PRESETS,
 } from "./input/constants/InputConstants.js";
 
+export {
+  PHYSICS_WORLD_DEFAULTS,
+  GRAVITY_PRESETS,
+  PHYSICS_MATERIALS,
+  PHYSICS_BODY_PRESETS,
+} from "./physics/constants/PhysicsConstants.js";
+
 // === CORE UTILITY EXPORTS ===
 export { MaterialCore } from "./materials/core/MaterialCore.js";
 export { AudioCore } from "./audios/core/AudioCore.js";
+export {
+  PhysicsShapeCreator,
+  PhysicsMaterialCreator,
+} from "./physics/index.js";
 export { InputCore } from "./input/core/InputCore.js";
 
 // === CATEGORY-SPECIFIC EXPORTS ===
