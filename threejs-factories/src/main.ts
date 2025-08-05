@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { MaterialFactory } from "./materials/index.js";
 import { AudioFactory } from "./audios/index.js";
 import { WorldManager } from "./world/index.js";
+// Uncomment the line below to enable input controls:
+// import { DemoInputController, createInputStatusDisplay, updateInputStatusDisplay } from "./input-integration.js";
 import {
   materialDefinitions,
   worldLightingPresets,
@@ -38,6 +40,9 @@ let cameraHeight = 3;
 let currentMaterial: MaterialType = "grass";
 let activeSounds = new Map<string, THREE.Audio | THREE.PositionalAudio>();
 let cameraRotationPaused = false;
+
+// Input controller (uncomment to enable)
+// let inputController: DemoInputController;
 
 // Initialize the demo
 async function init() {
@@ -106,6 +111,11 @@ async function init() {
   // Initialize factories
   materialFactory = new MaterialFactory();
   audioFactory = new AudioFactory(audioListener);
+
+  // Setup input controls (uncomment to enable)
+  // inputController = new DemoInputController();
+  // inputController.enable();
+  // setupInputIntegration();
 
   // Create demo objects
   await createDemoObjects();
@@ -681,6 +691,64 @@ function onWindowResize() {
 }
 
 window.addEventListener("resize", onWindowResize);
+
+// === INPUT INTEGRATION (Uncomment to enable) ===
+/* 
+function setupInputIntegration() {
+  // Add input status display
+  const inputDisplay = createInputStatusDisplay();
+  document.body.appendChild(inputDisplay);
+  inputDisplay.style.display = 'block';
+
+  // Listen for input events
+  window.addEventListener('demoCameraAction', (event) => {
+    const { action, deltaX, deltaY, delta } = event.detail;
+    
+    switch (action) {
+      case 'togglePause':
+        toggleCameraRotation();
+        break;
+      case 'reset':
+        resetCamera();
+        break;
+      case 'rotate':
+        if (deltaX) cameraAngle += deltaX;
+        if (deltaY) cameraHeight += deltaY;
+        updateCameraPosition();
+        break;
+      case 'zoom':
+        if (delta) {
+          cameraRadius += delta;
+          cameraRadius = Math.max(2, Math.min(20, cameraRadius));
+          updateCameraPosition();
+        }
+        break;
+    }
+  });
+
+  window.addEventListener('demoMaterialAction', (event) => {
+    const { materialType } = event.detail;
+    applyMaterialToObjects(materialType);
+  });
+
+  // Update input display in animation loop
+  const originalAnimate = animate;
+  animate = function() {
+    originalAnimate();
+    if (inputController) {
+      updateInputStatusDisplay(inputController);
+    }
+  };
+
+  console.log('🎮 Input integration enabled!');
+  console.log('  - Mouse drag to rotate camera');
+  console.log('  - Mouse wheel to zoom');
+  console.log('  - WASD to move camera');
+  console.log('  - Space to pause rotation');
+  console.log('  - R to reset camera');
+  console.log('  - 1-5 for quick material selection');
+}
+*/
 
 // Initialize when page loads
 init().catch(console.error);

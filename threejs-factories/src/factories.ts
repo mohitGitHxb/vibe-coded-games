@@ -47,6 +47,7 @@
 // === FACTORY EXPORTS ===
 export { MaterialFactory } from "./materials/index.js";
 export { AudioFactory } from "./audios/index.js";
+export { InputManager } from "./input/index.js";
 
 // === TYPE EXPORTS ===
 export type {
@@ -65,9 +66,23 @@ export type {
   AudioConfig,
 } from "./audios/types/AudioTypes.js";
 
+export type {
+  MousePosition,
+  MouseState,
+  KeyboardState,
+  TouchState,
+  Vector2Like,
+  InputManagerConfig,
+  InputManagerState,
+  InputEventCallbacks,
+  InputAction,
+  InputBinding,
+} from "./input/types/InputTypes.js";
+
 // === ENUM EXPORTS ===
 export { MaterialType } from "./materials/types/MaterialTypes.js";
 export { SoundType } from "./audios/types/AudioTypes.js";
+export { KeyCode, MouseButton } from "./input/types/InputTypes.js";
 
 // === CONSTANT EXPORTS ===
 export {
@@ -83,9 +98,17 @@ export {
   AUDIO_CACHE_CONFIG,
 } from "./audios/constants/AudioConstants.js";
 
+export {
+  MOUSE_SENSITIVITY_PRESETS,
+  COMMON_KEY_MAPPINGS,
+  INPUT_ACTION_PRESETS,
+  DEADZONE_PRESETS,
+} from "./input/constants/InputConstants.js";
+
 // === CORE UTILITY EXPORTS ===
 export { MaterialCore } from "./materials/core/MaterialCore.js";
 export { AudioCore } from "./audios/core/AudioCore.js";
+export { InputCore } from "./input/core/InputCore.js";
 
 // === CATEGORY-SPECIFIC EXPORTS ===
 export { TerrainMaterials } from "./materials/manager/TerrainMaterials.js";
