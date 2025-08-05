@@ -1,0 +1,25 @@
+/* Three.js Factories Demo Styles */
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+canvas {
+  display: block;
+}
+
+#info {
+  transition: opacity 0.3s ease;
+}
+
+#info:hover {
+  opacity: 0.9;
+}

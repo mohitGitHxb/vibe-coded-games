@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Three.js Factories Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: white;
+      }
+
+      #ui-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      #info {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 250px;
+        pointer-events: auto;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+      }
+
+      #info h3 {
+        margin: 0 0 10px 0;
+        color: #4fc3f7;
+        font-size: 18px;
+      }
+
+      #info p {
+        margin: 5px 0;
+        line-height: 1.4;
+        color: #e0e0e0;
+      }
+
+      #controls-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        width: 280px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        pointer-events: auto;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+      }
+
+      .panel-section {
+        margin-bottom: 25px;
+      }
+
+      .panel-section h4 {
+        margin: 0 0 12px 0;
+        color: #4fc3f7;
+        font-size: 16px;
+        border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+        padding-bottom: 5px;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+
+      .demo-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .demo-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .demo-button:active {
+        transform: translateY(0);
+      }
+
+      .demo-button.material-btn {
+        background: linear-gradient(135deg, #ff9a56 0%, #ff6b95 100%);
+      }
+
+      .demo-button.material-btn:hover {
+        box-shadow: 0 4px 12px rgba(255, 154, 86, 0.4);
+      }
+
+      .demo-button.audio-btn {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+      }
+
+      .demo-button.audio-btn:hover {
+        box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+      }
+
+      /* Category organization styles */
+      .category-header {
+        margin-bottom: 20px;
+      }
+
+      .category-title {
+        color: #4fc3f7;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .category-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+        margin-bottom: 15px;
+      }
+
+      .category-buttons .demo-button {
+        font-size: 10px;
+        padding: 6px 8px;
+        height: auto;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1.1;
+        border-radius: 4px;
+      }
+
+      .volume-controls {
+        margin-top: 15px;
+      }
+
+      .volume-controls label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #b0b0b0;
+      }
+
+      .volume-controls input[type="range"] {
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: #333;
+        outline: none;
+        margin-top: 5px;
+      }
+
+      .volume-controls input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #4fc3f7;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(79, 195, 247, 0.3);
+      }
+
+      .volume-controls input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #4fc3f7;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 6px rgba(79, 195, 247, 0.3);
+      }
+
+      #object-info,
+      #performance-info {
+        font-size: 11px;
+        line-height: 1.4;
+        color: #b0b0b0;
+      }
+
+      .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .info-label {
+        color: #e0e0e0;
+      }
+
+      .info-value {
+        color: #4fc3f7;
+        font-weight: 500;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+
+      .status-active {
+        background: #4caf50;
+        box-shadow: 0 0 6px #4caf50;
+      }
+
+      .status-inactive {
+        background: #666;
+      }
+
+      .toggle-panel {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 6px;
+        pointer-events: auto;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+      }
+
+      .toggle-button {
+        background: transparent;
+        border: 1px solid #4fc3f7;
+        color: #4fc3f7;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        transition: all 0.2s ease;
+      }
+
+      .toggle-button:hover {
+        background: #4fc3f7;
+        color: #000;
+      }
+
+      /* Scrollbar styling */
+      #controls-panel::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      #controls-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      #controls-panel::-webkit-scrollbar-thumb {
+        background: #4fc3f7;
+        border-radius: 3px;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        #controls-panel {
+          width: 240px;
+          font-size: 12px;
+        }
+
+        #info {
+          max-width: 200px;
+          font-size: 12px;
+        }
+
+        .button-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui-container">
+      <div id="info">
+        <h3>Current Material</h3>
+        <p><strong>Name:</strong> 🌱 Grass</p>
+        <p><strong>Type:</strong> grass</p>
+        <p><strong>Category:</strong> Terrain</p>
+        <p><strong>Description:</strong> Natural grass surface</p>
+      </div>
+
+      <div id="controls-panel">
+        <div class="panel-section">
+          <h4>🎨 Materials</h4>
+          <div id="material-categories"></div>
+        </div>
+
+        <div class="panel-section">
+          <h4>🔊 Audio</h4>
+          <div id="audio-buttons" class="button-grid"></div>
+          <div class="volume-controls">
+            <label
+              >Master Volume:
+              <input
+                type="range"
+                id="master-volume"
+                min="0"
+                max="100"
+                value="70"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h4>� World Settings</h4>
+          <div id="lighting-presets" class="button-grid"></div>
+          <div id="skybox-presets" class="button-grid"></div>
+          <div id="camera-presets" class="button-grid"></div>
+        </div>
+
+        <div class="panel-section">
+          <h4>�🎮 Camera Controls</h4>
+          <div class="button-grid">
+            <button class="demo-button" id="pause-camera">
+              ⏸️ Pause Rotation
+            </button>
+            <button class="demo-button" id="reset-camera">🔄 Reset View</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toggle-panel">
+        <button class="toggle-button" id="toggle-controls">Hide UI</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
