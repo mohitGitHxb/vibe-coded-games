@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎆 Particle Effects Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: white;
+      }
+
+      #canvas-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .controls {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        z-index: 100;
+        max-width: 350px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .controls h1 {
+        margin: 0 0 20px 0;
+        font-size: 1.5em;
+        text-align: center;
+        background: linear-gradient(
+          45deg,
+          #ff6b6b,
+          #4ecdc4,
+          #45b7d1,
+          #96ceb4,
+          #feca57
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .category {
+        margin-bottom: 25px;
+      }
+
+      .category h3 {
+        margin: 0 0 10px 0;
+        padding: 8px 0;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        font-size: 1.1em;
+      }
+
+      .effect-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .effect-btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .effect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .effect-btn.combat {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      }
+
+      .effect-btn.environmental {
+        background: linear-gradient(135deg, #4ecdc4 0%, #2d98da 100%);
+      }
+
+      .effect-btn.magic {
+        background: linear-gradient(135deg, #a55eea 0%, #8e44ad 100%);
+      }
+
+      .effect-btn.ui {
+        background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%);
+      }
+
+      .controls-section {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .control-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .control-btn {
+        padding: 8px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        cursor: pointer;
+        font-size: 11px;
+        transition: all 0.3s ease;
+      }
+
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .stats {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 11px;
+        max-width: 300px;
+        backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <div class="controls">
+      <h1>🎆 Particle Effects</h1>
+
+      <div class="category">
+        <h3>💥 Combat</h3>
+        <div class="effect-buttons">
+          <button class="effect-btn combat" data-effect="fireExplosion">
+            💥 Explosion
+          </button>
+          <button class="effect-btn combat" data-effect="sparks">
+            ✨ Sparks
+          </button>
+        </div>
+      </div>
+
+      <div class="category">
+        <h3>🌍 Environmental</h3>
+        <div class="effect-buttons">
+          <button class="effect-btn environmental" data-effect="rain">
+            🌧️ Rain
+          </button>
+        </div>
+      </div>
+
+      <div class="category">
+        <h3>✨ Magic</h3>
+        <div class="effect-buttons">
+          <button class="effect-btn magic" data-effect="magicSparkles">
+            🌟 Sparkles
+          </button>
+        </div>
+      </div>
+
+      <div class="category">
+        <h3>🎨 UI</h3>
+        <div class="effect-buttons">
+          <button class="effect-btn ui" data-effect="clickBurst">
+            👆 Click Burst
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-section">
+        <div class="control-row">
+          <span>System Controls:</span>
+        </div>
+        <div class="control-row">
+          <button class="control-btn" id="pauseAll">⏸️ Pause All</button>
+          <button class="control-btn" id="resumeAll">▶️ Resume All</button>
+          <button class="control-btn" id="clearAll">🗑️ Clear All</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div><strong>🎆 Particle Systems Demo</strong></div>
+      <div>Active Effects: <span id="activeCount">0</span></div>
+      <div>Total Particles: <span id="particleCount">~0</span></div>
+      <div>FPS: <span id="fps">60</span></div>
+    </div>
+
+    <div class="instructions">
+      <strong>🎮 Instructions:</strong><br />
+      • Click effect buttons to spawn particles<br />
+      • Click anywhere on scene for click bursts<br />
+      • Rain/Sparkles are continuous effects<br />
+      • Explosions and sparks are one-shot effects<br />
+      • Use controls to manage all effects
+    </div>
+
+    <script type="module">
+      import * as THREE from "https://unpkg.com/three@0.179.1/build/three.module.js";
+
+      class ParticleDemo {
+        constructor() {
+          this.scene = new THREE.Scene();
+          this.camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+          );
+          this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+          });
+          this.clock = new THREE.Clock();
+
+          // Particle systems
+          this.activeSystems = new Map();
+          this.systemCounter = 0;
+
+          // Stats
+          this.frameCount = 0;
+          this.lastStatsUpdate = Date.now();
+
+          this.init();
+        }
+
+        init() {
+          // Setup renderer
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          this.renderer.setClearColor(0x000011, 1);
+          document
+            .getElementById("canvas-container")
+            .appendChild(this.renderer.domElement);
+
+          // Setup camera
+          this.camera.position.set(0, 5, 15);
+          this.camera.lookAt(0, 0, 0);
+
+          // Setup scene
+          this.scene.background = new THREE.Color(0x000820);
+          this.scene.fog = new THREE.Fog(0x000820, 30, 100);
+
+          // Add some ambient lighting
+          const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+          this.scene.add(ambientLight);
+
+          const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+          directionalLight.position.set(10, 10, 5);
+          this.scene.add(directionalLight);
+
+          // Add ground plane for reference
+          const groundGeometry = new THREE.PlaneGeometry(50, 50);
+          const groundMaterial = new THREE.MeshLambertMaterial({
+            color: 0x111111,
+            transparent: true,
+            opacity: 0.8,
+          });
+          const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+          ground.rotation.x = -Math.PI / 2;
+          ground.position.y = -2;
+          this.scene.add(ground);
+
+          // Grid for reference
+          const gridHelper = new THREE.GridHelper(50, 50, 0x333333, 0x333333);
+          gridHelper.position.y = -1.9;
+          this.scene.add(gridHelper);
+
+          this.setupEventListeners();
+          this.animate();
+
+          console.log("🎆 Particle Effects Demo initialized!");
+        }
+
+        setupEventListeners() {
+          // Effect buttons
+          document.querySelectorAll(".effect-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const effectType = e.target.dataset.effect;
+              this.spawnEffect(effectType);
+            });
+          });
+
+          // Control buttons
+          document.getElementById("pauseAll").addEventListener("click", () => {
+            this.pauseAllEffects();
+          });
+
+          document.getElementById("resumeAll").addEventListener("click", () => {
+            this.resumeAllEffects();
+          });
+
+          document.getElementById("clearAll").addEventListener("click", () => {
+            this.clearAllEffects();
+          });
+
+          // Click to spawn click bursts
+          this.renderer.domElement.addEventListener("click", (event) => {
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            // Convert screen coordinates to world position
+            const vector = new THREE.Vector3(x, y, 0.5);
+            vector.unproject(this.camera);
+            const direction = vector.sub(this.camera.position).normalize();
+            const distance = -this.camera.position.z / direction.z;
+            const position = this.camera.position
+              .clone()
+              .add(direction.multiplyScalar(distance));
+
+            this.spawnEffect("clickBurst", position);
+          });
+
+          // Window resize
+          window.addEventListener("resize", () => {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+          });
+        }
+
+        spawnEffect(type, position = null) {
+          if (!position) {
+            // Random position above ground
+            position = new THREE.Vector3(
+              (Math.random() - 0.5) * 10,
+              Math.random() * 3 + 1,
+              (Math.random() - 0.5) * 10
+            );
+          }
+
+          // Create mock particle system based on type
+          const system = this.createMockSystem(type, position);
+          if (system) {
+            const id = `effect_${this.systemCounter++}`;
+            this.activeSystems.set(id, system);
+            this.scene.add(system.mesh);
+
+            // Auto-cleanup for one-shot effects
+            if (["fireExplosion", "sparks", "clickBurst"].includes(type)) {
+              setTimeout(() => {
+                this.removeSystem(id);
+              }, system.lifetime * 1000);
+            }
+
+            console.log(`✨ Spawned ${type} at`, position);
+          }
+        }
+
+        createMockSystem(type, position) {
+          // This is a simplified mock system for demo purposes
+          // In real implementation, this would use the actual particle factory
+
+          const configs = {
+            fireExplosion: {
+              particleCount: 150,
+              color: 0xff4400,
+              size: 0.3,
+              lifetime: 2.0,
+              spread: 5,
+            },
+            sparks: {
+              particleCount: 80,
+              color: 0xffffff,
+              size: 0.1,
+              lifetime: 1.5,
+              spread: 3,
+            },
+            rain: {
+              particleCount: 300,
+              color: 0x77aaff,
+              size: 0.05,
+              lifetime: -1, // Continuous
+              spread: 15,
+            },
+            magicSparkles: {
+              particleCount: 100,
+              color: 0xff00ff,
+              size: 0.15,
+              lifetime: -1, // Continuous
+              spread: 2,
+            },
+            clickBurst: {
+              particleCount: 20,
+              color: 0x00ff88,
+              size: 0.2,
+              lifetime: 0.5,
+              spread: 2,
+            },
+          };
+
+          const config = configs[type];
+          if (!config) return null;
+
+          // Create particle geometry
+          const geometry = new THREE.BufferGeometry();
+          const positions = new Float32Array(config.particleCount * 3);
+          const velocities = new Float32Array(config.particleCount * 3);
+          const lifetimes = new Float32Array(config.particleCount);
+          const colors = new Float32Array(config.particleCount * 3);
+
+          // Initialize particles
+          for (let i = 0; i < config.particleCount; i++) {
+            const i3 = i * 3;
+
+            // Position
+            if (type === "rain") {
+              positions[i3] = (Math.random() - 0.5) * config.spread;
+              positions[i3 + 1] = Math.random() * 5;
+              positions[i3 + 2] = (Math.random() - 0.5) * config.spread;
+            } else {
+              positions[i3] = (Math.random() - 0.5) * config.spread * 0.2;
+              positions[i3 + 1] = (Math.random() - 0.5) * config.spread * 0.2;
+              positions[i3 + 2] = (Math.random() - 0.5) * config.spread * 0.2;
+            }
+
+            // Velocity
+            if (type === "rain") {
+              velocities[i3] = (Math.random() - 0.5) * 2;
+              velocities[i3 + 1] = -10 - Math.random() * 10;
+              velocities[i3 + 2] = (Math.random() - 0.5) * 2;
+            } else if (type === "clickBurst") {
+              const angle = (i / config.particleCount) * Math.PI * 2;
+              const speed = 3 + Math.random() * 2;
+              velocities[i3] = Math.cos(angle) * speed;
+              velocities[i3 + 1] = Math.sin(angle) * speed;
+              velocities[i3 + 2] = 0;
+            } else {
+              velocities[i3] = (Math.random() - 0.5) * config.spread;
+              velocities[i3 + 1] = Math.random() * config.spread;
+              velocities[i3 + 2] = (Math.random() - 0.5) * config.spread;
+            }
+
+            // Lifetime
+            lifetimes[i] =
+              config.lifetime > 0
+                ? config.lifetime * (0.5 + Math.random() * 0.5)
+                : -1;
+
+            // Color
+            const color = new THREE.Color(config.color);
+            if (type === "magicSparkles") {
+              const colors_magic = [0xff00ff, 0x00ffff, 0xffff00];
+              color.setHex(
+                colors_magic[Math.floor(Math.random() * colors_magic.length)]
+              );
+            }
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
+          }
+
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3)
+          );
+          geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+          // Create material
+          const material = new THREE.PointsMaterial({
+            size: config.size,
+            vertexColors: true,
+            blending:
+              type === "rain" ? THREE.NormalBlending : THREE.AdditiveBlending,
+            transparent: true,
+            opacity: 0.8,
+          });
+
+          // Create mesh
+          const mesh = new THREE.Points(geometry, material);
+          mesh.position.copy(position);
+
+          return {
+            mesh,
+            geometry,
+            material,
+            type,
+            particleCount: config.particleCount,
+            lifetime: config.lifetime,
+            velocities,
+            lifetimes,
+            maxLifetimes: lifetimes.slice(),
+            startTime: Date.now(),
+            isActive: true,
+          };
+        }
+
+        updateSystem(system, deltaTime) {
+          if (!system.isActive) return;
+
+          const positions = system.geometry.attributes.position.array;
+          const colors = system.geometry.attributes.color.array;
+
+          for (let i = 0; i < system.particleCount; i++) {
+            const i3 = i * 3;
+
+            if (system.lifetime > 0) {
+              system.lifetimes[i] -= deltaTime;
+
+              if (system.lifetimes[i] <= 0) {
+                // Reset for continuous effects or hide for one-shot
+                if (["rain", "magicSparkles"].includes(system.type)) {
+                  // Respawn
+                  system.lifetimes[i] = system.maxLifetimes[i];
+                  if (system.type === "rain") {
+                    positions[i3] = (Math.random() - 0.5) * 15;
+                    positions[i3 + 1] = 10 + Math.random() * 5;
+                    positions[i3 + 2] = (Math.random() - 0.5) * 15;
+                  }
+                } else {
+                  colors[i3] = 0;
+                  colors[i3 + 1] = 0;
+                  colors[i3 + 2] = 0;
+                  continue;
+                }
+              }
+            }
+
+            // Update position
+            positions[i3] += system.velocities[i3] * deltaTime;
+            positions[i3 + 1] += system.velocities[i3 + 1] * deltaTime;
+            positions[i3 + 2] += system.velocities[i3 + 2] * deltaTime;
+
+            // Apply gravity for some effects
+            if (["fireExplosion", "sparks", "rain"].includes(system.type)) {
+              system.velocities[i3 + 1] -= 9.8 * deltaTime;
+            }
+
+            // Damping
+            if (system.type !== "rain") {
+              system.velocities[i3] *= 0.99;
+              system.velocities[i3 + 1] *= 0.99;
+              system.velocities[i3 + 2] *= 0.99;
+            }
+
+            // Color fade for one-shot effects
+            if (system.lifetime > 0 && system.lifetimes[i] > 0) {
+              const lifeRatio = system.lifetimes[i] / system.maxLifetimes[i];
+              const opacity = Math.max(0, lifeRatio);
+
+              colors[i3] *= opacity;
+              colors[i3 + 1] *= opacity;
+              colors[i3 + 2] *= opacity;
+            }
+
+            // Ground collision for sparks
+            if (system.type === "sparks" && positions[i3 + 1] <= -2) {
+              positions[i3 + 1] = -2;
+              system.velocities[i3 + 1] *= -0.3;
+            }
+          }
+
+          system.geometry.attributes.position.needsUpdate = true;
+          system.geometry.attributes.color.needsUpdate = true;
+        }
+
+        removeSystem(id) {
+          const system = this.activeSystems.get(id);
+          if (system) {
+            this.scene.remove(system.mesh);
+            system.geometry.dispose();
+            system.material.dispose();
+            this.activeSystems.delete(id);
+          }
+        }
+
+        pauseAllEffects() {
+          this.activeSystems.forEach((system) => {
+            system.isActive = false;
+          });
+        }
+
+        resumeAllEffects() {
+          this.activeSystems.forEach((system) => {
+            system.isActive = true;
+          });
+        }
+
+        clearAllEffects() {
+          const ids = Array.from(this.activeSystems.keys());
+          ids.forEach((id) => this.removeSystem(id));
+        }
+
+        updateStats() {
+          this.frameCount++;
+          const now = Date.now();
+
+          if (now - this.lastStatsUpdate >= 1000) {
+            const fps = Math.round(
+              (this.frameCount * 1000) / (now - this.lastStatsUpdate)
+            );
+            document.getElementById("fps").textContent = fps;
+
+            const activeCount = this.activeSystems.size;
+            document.getElementById("activeCount").textContent = activeCount;
+
+            let totalParticles = 0;
+            this.activeSystems.forEach((system) => {
+              totalParticles += system.particleCount;
+            });
+            document.getElementById(
+              "particleCount"
+            ).textContent = `~${totalParticles}`;
+
+            this.frameCount = 0;
+            this.lastStatsUpdate = now;
+          }
+        }
+
+        animate() {
+          requestAnimationFrame(() => this.animate());
+
+          const deltaTime = this.clock.getDelta();
+
+          // Update all particle systems
+          this.activeSystems.forEach((system) => {
+            this.updateSystem(system, deltaTime);
+          });
+
+          // Rotate camera around scene
+          const time = this.clock.getElapsedTime() * 0.1;
+          this.camera.position.x = Math.cos(time) * 15;
+          this.camera.position.z = Math.sin(time) * 15;
+          this.camera.lookAt(0, 0, 0);
+
+          this.updateStats();
+          this.renderer.render(this.scene, this.camera);
+        }
+      }
+
+      // Initialize demo
+      new ParticleDemo();
+    </script>
+  </body>
+</html>

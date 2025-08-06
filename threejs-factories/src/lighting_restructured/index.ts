@@ -2,7 +2,7 @@
 export { LightingFactory } from "./LightingFactory";
 
 // Types
-export { ILightingScene, LightingSetup } from "./types/LightingTypes";
+export type { ILightingScene, LightingSetup } from "./types/LightingTypes";
 
 // Registry
 export { LightingRegistry } from "./repository/lighting-registry";
