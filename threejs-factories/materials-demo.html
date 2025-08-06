@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Materials Demo - Three.js Factories</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: white;
+      }
+
+      #ui-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      #info {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        max-width: 300px;
+        pointer-events: auto;
+        border: 2px solid rgba(79, 195, 247, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+      }
+
+      #info h2 {
+        margin: 0 0 15px 0;
+        color: #4fc3f7;
+        font-size: 24px;
+        text-align: center;
+        text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+      }
+
+      #info p {
+        margin: 8px 0;
+        line-height: 1.5;
+        color: #e0e0e0;
+      }
+
+      .feature-list {
+        margin: 15px 0;
+        padding-left: 0;
+        list-style: none;
+      }
+
+      .feature-list li {
+        margin: 8px 0;
+        padding-left: 20px;
+        position: relative;
+        color: #b0b0b0;
+        font-size: 13px;
+      }
+
+      .feature-list li:before {
+        content: "✨";
+        position: absolute;
+        left: 0;
+      }
+
+      #controls-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 25px;
+        border-radius: 12px;
+        font-size: 13px;
+        width: 320px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        pointer-events: auto;
+        border: 2px solid rgba(79, 195, 247, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+      }
+
+      .panel-section {
+        margin-bottom: 30px;
+      }
+
+      .panel-section h3 {
+        margin: 0 0 15px 0;
+        color: #4fc3f7;
+        font-size: 18px;
+        border-bottom: 2px solid rgba(79, 195, 247, 0.3);
+        padding-bottom: 8px;
+        text-shadow: 0 0 8px rgba(79, 195, 247, 0.3);
+      }
+
+      .materials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .material-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        line-height: 1.2;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .material-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .material-button:active {
+        transform: translateY(-1px);
+      }
+
+      .material-button.active {
+        background: linear-gradient(135deg, #ff9a56 0%, #ff6b95 100%);
+        box-shadow: 0 8px 25px rgba(255, 154, 86, 0.5);
+      }
+
+      .shape-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .shape-button {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        border: none;
+        color: white;
+        padding: 10px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .shape-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+      }
+
+      .shape-button.active {
+        background: linear-gradient(135deg, #ff6b95 0%, #ff9a56 100%);
+        box-shadow: 0 6px 20px rgba(255, 107, 149, 0.5);
+      }
+
+      .camera-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .control-button {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border: none;
+        color: #333;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .control-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(168, 237, 234, 0.4);
+      }
+
+      .back-button {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: auto;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .current-material {
+        background: rgba(79, 195, 247, 0.1);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+      }
+
+      .current-material h4 {
+        margin: 0 0 8px 0;
+        color: #4fc3f7;
+        font-size: 16px;
+      }
+
+      .current-material p {
+        margin: 4px 0;
+        color: #e0e0e0;
+        font-size: 12px;
+      }
+
+      /* Scrollbar styling */
+      #controls-panel::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #controls-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
+
+      #controls-panel::-webkit-scrollbar-thumb {
+        background: #4fc3f7;
+        border-radius: 4px;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        #controls-panel {
+          width: 280px;
+          font-size: 12px;
+        }
+
+        #info {
+          max-width: 250px;
+          font-size: 12px;
+        }
+
+        .materials-grid {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui-container">
+      <div id="info">
+        <h2>🎨 Materials Demo</h2>
+        <p>
+          <strong>Interactive 3D Materials Showcase</strong>
+        </p>
+        <p>Explore our procedural material system with real-time rendering.</p>
+        <ul class="feature-list">
+          <li>56 different materials</li>
+          <li>Procedural canvas textures</li>
+          <li>Multiple 3D shapes</li>
+          <li>Real-time switching</li>
+          <li>Interactive camera controls</li>
+          <li>9 material categories</li>
+        </ul>
+      </div>
+
+      <div id="controls-panel">
+        <div class="current-material">
+          <h4 id="current-material-name">🌱 Grass</h4>
+          <p id="current-material-info">
+            Natural grass surface with blade texture
+          </p>
+        </div>
+
+        <div class="panel-section">
+          <h3>🎯 Select Shape</h3>
+          <div class="shape-controls">
+            <button class="shape-button active" data-shape="sphere">
+              🔮 Sphere
+            </button>
+            <button class="shape-button" data-shape="cube">📦 Cube</button>
+            <button class="shape-button" data-shape="torus">🍩 Torus</button>
+          </div>
+        </div>
+
+        <!-- Gems & Crystals -->
+        <div class="panel-section">
+          <h3>💎 Gems & Crystals</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="emerald">
+              💚 Emerald
+            </button>
+            <button class="material-button" data-material="ruby">
+              ❤️ Ruby
+            </button>
+            <button class="material-button" data-material="sapphire">
+              💙 Sapphire
+            </button>
+            <button class="material-button" data-material="diamond">
+              💎 Diamond
+            </button>
+            <button class="material-button" data-material="amethyst">
+              💜 Amethyst
+            </button>
+            <button class="material-button" data-material="topaz">
+              🟡 Topaz
+            </button>
+            <button class="material-button" data-material="jade">
+              💚 Jade
+            </button>
+            <button class="material-button" data-material="opal">
+              🌈 Opal
+            </button>
+            <button class="material-button" data-material="crystal">
+              💎 Crystal
+            </button>
+          </div>
+        </div>
+
+        <!-- Building Materials -->
+        <div class="panel-section">
+          <h3>🏗️ Building Materials</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="brick">
+              🧱 Brick
+            </button>
+            <button class="material-button" data-material="concrete">
+              🏢 Concrete
+            </button>
+            <button class="material-button" data-material="wood">� Wood</button>
+            <button class="material-button" data-material="stone">
+              🗿 Stone
+            </button>
+            <button class="material-button" data-material="marble">
+              ⚪ Marble
+            </button>
+            <button class="material-button" data-material="glass">
+              🪟 Glass
+            </button>
+            <button class="material-button" data-material="ceramic">
+              🏺 Ceramic
+            </button>
+            <button class="material-button" data-material="tile">
+              🔲 Tile
+            </button>
+          </div>
+        </div>
+
+        <!-- Metals -->
+        <div class="panel-section">
+          <h3>⚙️ Metals</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="steel">
+              ⚡ Steel
+            </button>
+            <button class="material-button" data-material="iron">
+              ⚫ Iron
+            </button>
+            <button class="material-button" data-material="gold">
+              🥇 Gold
+            </button>
+            <button class="material-button" data-material="silver">
+              🥈 Silver
+            </button>
+            <button class="material-button" data-material="copper">
+              🟫 Copper
+            </button>
+            <button class="material-button" data-material="brass">
+              🟨 Brass
+            </button>
+            <button class="material-button" data-material="bronze">
+              🟫 Bronze
+            </button>
+            <button class="material-button" data-material="aluminum">
+              ⚪ Aluminum
+            </button>
+            <button class="material-button" data-material="chrome">
+              ✨ Chrome
+            </button>
+            <button class="material-button" data-material="platinum">
+              ⚪ Platinum
+            </button>
+          </div>
+        </div>
+
+        <!-- Terrain Materials -->
+        <div class="panel-section">
+          <h3>🌍 Terrain</h3>
+          <div class="materials-grid">
+            <button class="material-button active" data-material="grass">
+              🌱 Grass
+            </button>
+            <button class="material-button" data-material="dirt">
+              🟫 Dirt
+            </button>
+            <button class="material-button" data-material="sand">
+              🏖️ Sand
+            </button>
+            <button class="material-button" data-material="gravel">
+              ⚫ Gravel
+            </button>
+            <button class="material-button" data-material="mud">🟫 Mud</button>
+            <button class="material-button" data-material="clay">
+              🟫 Clay
+            </button>
+            <button class="material-button" data-material="snow">
+              ❄️ Snow
+            </button>
+            <button class="material-button" data-material="ice">🧊 Ice</button>
+            <button class="material-button" data-material="rock">� Rock</button>
+          </div>
+        </div>
+
+        <!-- Liquid Materials -->
+        <div class="panel-section">
+          <h3>💧 Liquids</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="water">
+              💧 Water
+            </button>
+            <button class="material-button" data-material="lava">
+              🌋 Lava
+            </button>
+            <button class="material-button" data-material="oil">⚫ Oil</button>
+            <button class="material-button" data-material="mercury">
+              ⚪ Mercury
+            </button>
+          </div>
+        </div>
+
+        <!-- Organic Materials -->
+        <div class="panel-section">
+          <h3>🌿 Organic</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="leather">
+              🟫 Leather
+            </button>
+            <button class="material-button" data-material="fabric">
+              🧵 Fabric
+            </button>
+            <button class="material-button" data-material="paper">
+              📄 Paper
+            </button>
+            <button class="material-button" data-material="bone">
+              🦴 Bone
+            </button>
+            <button class="material-button" data-material="coral">
+              🪸 Coral
+            </button>
+            <button class="material-button" data-material="pearl">
+              🤍 Pearl
+            </button>
+          </div>
+        </div>
+
+        <!-- Synthetic Materials -->
+        <div class="panel-section">
+          <h3>🧪 Synthetic</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="plastic">
+              🟦 Plastic
+            </button>
+            <button class="material-button" data-material="rubber">
+              ⚫ Rubber
+            </button>
+            <button class="material-button" data-material="foam">
+              ⚪ Foam
+            </button>
+            <button class="material-button" data-material="nylon">
+              🟨 Nylon
+            </button>
+            <button class="material-button" data-material="vinyl">
+              🟦 Vinyl
+            </button>
+          </div>
+        </div>
+
+        <!-- Sci-Fi Materials -->
+        <div class="panel-section">
+          <h3>🚀 Sci-Fi</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="energy">
+              ⚡ Energy
+            </button>
+            <button class="material-button" data-material="hologram">
+              🌈 Hologram
+            </button>
+            <button class="material-button" data-material="plasma">
+              💜 Plasma
+            </button>
+            <button class="material-button" data-material="quantum">
+              🔮 Quantum
+            </button>
+          </div>
+        </div>
+
+        <!-- Fantasy Materials -->
+        <div class="panel-section">
+          <h3>✨ Fantasy</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="mithril">
+              ✨ Mithril
+            </button>
+            <button class="material-button" data-material="dragonScale">
+              🐉 Dragon Scale
+            </button>
+            <button class="material-button" data-material="moonstone">
+              🌙 Moonstone
+            </button>
+            <button class="material-button" data-material="ethereal">
+              👻 Ethereal
+            </button>
+          </div>
+        </div>
+
+        <!-- Cartoon Materials -->
+        <div class="panel-section">
+          <h3>� Cartoon</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="toon">
+              🎨 Toon
+            </button>
+            <button class="material-button" data-material="candy">
+              🍭 Candy
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>💧 Liquids & Elements</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="water">
+              💧 Water
+            </button>
+            <button class="material-button" data-material="lava">
+              🌋 Lava
+            </button>
+            <button class="material-button" data-material="ice">❄️ Ice</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>🔮 Special Materials</h3>
+          <div class="materials-grid">
+            <button class="material-button" data-material="glass">
+              🪟 Glass
+            </button>
+            <button class="material-button" data-material="leather">
+              🧥 Leather
+            </button>
+            <button class="material-button" data-material="scifi">
+              🚀 Sci-Fi
+            </button>
+            <button class="material-button" data-material="plasma">
+              ⚡ Plasma
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>📹 Camera Controls</h3>
+          <div class="camera-controls">
+            <button class="control-button" id="pause-rotation">⏸️ Pause</button>
+            <button class="control-button" id="reset-camera">🔄 Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <a href="index.html" class="back-button"> ← Back to Main Demo </a>
+    </div>
+
+    <script
+      type="module"
+      src="/src/materials_restructured/examples/materials-demo.ts"
+    ></script>
+  </body>
+</html>

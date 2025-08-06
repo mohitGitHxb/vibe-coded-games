@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Systems Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: Arial, sans-serif;
+      }
+      #canvas-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      .controls {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 100;
+        max-width: 300px;
+      }
+      .control-section {
+        margin-bottom: 20px;
+      }
+      .control-section h3 {
+        margin: 0 0 10px 0;
+        color: #fff;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #4caf50;
+        color: white;
+        font-size: 12px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      button.active {
+        background: #ff6b35;
+      }
+      .material-button {
+        background: #2196f3;
+      }
+      .material-button:hover {
+        background: #1976d2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+
+    <div class="controls">
+      <h2>🌍 World Systems Demo</h2>
+
+      <div class="control-section">
+        <h3>💡 Lighting</h3>
+        <button class="lighting-btn active" data-lighting="sunny">
+          ☀️ Sunny
+        </button>
+        <button class="lighting-btn" data-lighting="cloudy">☁️ Cloudy</button>
+        <button class="lighting-btn" data-lighting="dawn">🌅 Dawn</button>
+        <button class="lighting-btn" data-lighting="dusk">🌇 Dusk</button>
+        <button class="lighting-btn" data-lighting="night">🌙 Night</button>
+        <button class="lighting-btn" data-lighting="office">🏢 Office</button>
+        <button class="lighting-btn" data-lighting="cozy">🏠 Cozy</button>
+      </div>
+
+      <div class="control-section">
+        <h3>🌌 Skybox</h3>
+        <button class="skybox-btn active" data-skybox="clear">🌤️ Clear</button>
+        <button class="skybox-btn" data-skybox="cloudy">☁️ Cloudy</button>
+        <button class="skybox-btn" data-skybox="sunset">🌅 Sunset</button>
+        <button class="skybox-btn" data-skybox="night">🌃 Night</button>
+        <button class="skybox-btn" data-skybox="space">🚀 Space</button>
+      </div>
+
+      <div class="control-section">
+        <h3>🎨 Materials</h3>
+        <button class="material-button" data-material="emerald">
+          💚 Emerald
+        </button>
+        <button class="material-button" data-material="gold">🥇 Gold</button>
+        <button class="material-button" data-material="steel">⚡ Steel</button>
+        <button class="material-button" data-material="wood">🪵 Wood</button>
+        <button class="material-button" data-material="brick">🧱 Brick</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from "https://unpkg.com/three@0.150.1/build/three.module.js";
+
+      // Demo scene setup
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document
+        .getElementById("canvas-container")
+        .appendChild(renderer.domElement);
+
+      // Create demo objects
+      const geometry1 = new THREE.BoxGeometry(2, 2, 2);
+      const geometry2 = new THREE.SphereGeometry(1, 32, 32);
+      const geometry3 = new THREE.CylinderGeometry(0.5, 0.5, 3, 16);
+      const geometry4 = new THREE.PlaneGeometry(20, 20);
+
+      // Initial materials (will be replaced by material system)
+      let mesh1 = new THREE.Mesh(
+        geometry1,
+        new THREE.MeshStandardMaterial({ color: 0x50c878 })
+      );
+      let mesh2 = new THREE.Mesh(
+        geometry2,
+        new THREE.MeshStandardMaterial({ color: 0xffd700 })
+      );
+      let mesh3 = new THREE.Mesh(
+        geometry3,
+        new THREE.MeshStandardMaterial({ color: 0x71797e })
+      );
+      let ground = new THREE.Mesh(
+        geometry4,
+        new THREE.MeshStandardMaterial({ color: 0x228b22 })
+      );
+
+      mesh1.position.set(-3, 1, 0);
+      mesh1.castShadow = true;
+      mesh1.receiveShadow = true;
+
+      mesh2.position.set(0, 1, 0);
+      mesh2.castShadow = true;
+      mesh2.receiveShadow = true;
+
+      mesh3.position.set(3, 1.5, 0);
+      mesh3.castShadow = true;
+      mesh3.receiveShadow = true;
+
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+
+      scene.add(mesh1, mesh2, mesh3, ground);
+
+      camera.position.set(5, 5, 8);
+      camera.lookAt(0, 0, 0);
+
+      // Current system states
+      let currentLighting = "sunny";
+      let currentSkybox = "clear";
+
+      // Simulate lighting changes (in real app, you'd import the actual systems)
+      function updateLighting(type) {
+        // Clear existing lights
+        const lightsToRemove = [];
+        scene.traverse((object) => {
+          if (object instanceof THREE.Light) {
+            lightsToRemove.push(object);
+          }
+        });
+        lightsToRemove.forEach((light) => scene.remove(light));
+
+        // Apply new lighting based on type
+        switch (type) {
+          case "sunny":
+            scene.add(new THREE.AmbientLight(0x87ceeb, 0.6));
+            const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            sunLight.position.set(10, 15, 5);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 50;
+            sunLight.shadow.camera.left = -25;
+            sunLight.shadow.camera.right = 25;
+            sunLight.shadow.camera.top = 25;
+            sunLight.shadow.camera.bottom = -25;
+            scene.add(sunLight);
+            scene.fog = null;
+            break;
+
+          case "night":
+            scene.add(new THREE.AmbientLight(0x1a1a2e, 0.15));
+            const moonLight = new THREE.DirectionalLight(0x6a7b8a, 0.8);
+            moonLight.position.set(-5, 10, 3);
+            moonLight.castShadow = true;
+            scene.add(moonLight);
+
+            const streetLamp1 = new THREE.PointLight(0xffaa55, 2.0, 15, 2);
+            streetLamp1.position.set(-3, 4, 2);
+            streetLamp1.castShadow = true;
+            scene.add(streetLamp1);
+
+            scene.fog = new THREE.Fog(0x1a1a2e, 5, 25);
+            break;
+
+          case "dawn":
+            scene.add(new THREE.AmbientLight(0xffeaa7, 0.3));
+            const dawnLight = new THREE.DirectionalLight(0xffa726, 1.5);
+            dawnLight.position.set(8, 3, 2);
+            dawnLight.castShadow = true;
+            scene.add(dawnLight);
+            scene.fog = new THREE.Fog(0xffeaa7, 8, 35);
+            break;
+
+          default:
+            scene.add(new THREE.AmbientLight(0x404040, 0.4));
+            const defaultLight = new THREE.DirectionalLight(0xffffff, 1);
+            defaultLight.position.set(5, 10, 5);
+            defaultLight.castShadow = true;
+            scene.add(defaultLight);
+        }
+
+        currentLighting = type;
+        updateActiveButton(".lighting-btn", type);
+      }
+
+      // Simulate skybox changes
+      function updateSkybox(type) {
+        // Clear existing skybox
+        scene.background = null;
+        scene.environment = null;
+
+        switch (type) {
+          case "clear":
+            scene.background = new THREE.Color(0x87ceeb);
+            break;
+          case "sunset":
+            scene.background = new THREE.Color(0xff6b35);
+            break;
+          case "night":
+            scene.background = new THREE.Color(0x000428);
+            break;
+          case "space":
+            scene.background = new THREE.Color(0x000000);
+            break;
+          default:
+            scene.background = new THREE.Color(0x87ceeb);
+        }
+
+        currentSkybox = type;
+        updateActiveButton(".skybox-btn", type);
+      }
+
+      // Simulate material changes (in real app, you'd use MaterialFactory)
+      function updateMaterial(type) {
+        let color,
+          roughness = 0.5,
+          metalness = 0;
+
+        switch (type) {
+          case "emerald":
+            color = 0x50c878;
+            roughness = 0.2;
+            break;
+          case "gold":
+            color = 0xffd700;
+            roughness = 0.1;
+            metalness = 1.0;
+            break;
+          case "steel":
+            color = 0x71797e;
+            roughness = 0.3;
+            metalness = 1.0;
+            break;
+          case "wood":
+            color = 0xdeb887;
+            roughness = 0.8;
+            break;
+          case "brick":
+            color = 0x8b4513;
+            roughness = 0.9;
+            break;
+        }
+
+        mesh1.material = new THREE.MeshStandardMaterial({
+          color,
+          roughness,
+          metalness,
+        });
+      }
+
+      function updateActiveButton(selector, activeValue) {
+        document.querySelectorAll(selector).forEach((btn) => {
+          btn.classList.remove("active");
+          if (
+            btn.dataset.lighting === activeValue ||
+            btn.dataset.skybox === activeValue ||
+            btn.dataset.material === activeValue
+          ) {
+            btn.classList.add("active");
+          }
+        });
+      }
+
+      // Event listeners
+      document.querySelectorAll(".lighting-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updateLighting(btn.dataset.lighting);
+        });
+      });
+
+      document.querySelectorAll(".skybox-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updateSkybox(btn.dataset.skybox);
+        });
+      });
+
+      document.querySelectorAll(".material-button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updateMaterial(btn.dataset.material);
+        });
+      });
+
+      // Initialize with default settings
+      updateLighting("sunny");
+      updateSkybox("clear");
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Rotate objects slightly
+        mesh1.rotation.y += 0.005;
+        mesh2.rotation.y += 0.008;
+        mesh3.rotation.y += 0.003;
+
+        renderer.render(scene, camera);
+      }
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      animate();
+    </script>
+  </body>
+</html>
