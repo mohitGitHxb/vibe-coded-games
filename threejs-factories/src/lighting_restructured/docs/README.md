@@ -88,7 +88,7 @@ function getLightingForEnvironment(environment: string) {
 // Step 1: Create lighting scene class
 // lighting/MyCustomLighting.ts
 import * as THREE from "three";
-import { ILightingScene, LightingSetup } from "../types/LightingTypes";
+import type { ILightingScene, LightingSetup } from "../types/LightingTypes";
 
 export class MyCustomLighting implements ILightingScene {
   create(scene: THREE.Scene): LightingSetup {

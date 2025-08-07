@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ILightingScene, LightingSetup } from "../types/LightingTypes";
+import type { ILightingScene, LightingSetup } from "../types/LightingTypes";
 
 export class NightTime implements ILightingScene {
   create(scene: THREE.Scene): LightingSetup {
