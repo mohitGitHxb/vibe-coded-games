@@ -15,7 +15,11 @@ import { SkyboxFactory } from "./libs/skybox_restructured/SkyboxFactory";
 import { SpaceSky } from "./libs/skybox_restructured/skyboxes/SpaceSky";
 import { HUDManager } from "./utils/HUDManager";
 import type { GameStats, PowerUpStatus } from "./utils/HUDManager";
-import { ParticleFactory } from "./libs/particles_restructured";
+import {
+  ParticleFactory,
+  FireExplosion,
+  Sparks,
+} from "./libs/particles_restructured";
 import { AudioFactory } from "./libs/audios";
 import type { SoundType } from "./libs/audios";
 import * as THREE from "three";
@@ -81,6 +85,7 @@ export class AsteroidBlast extends GameEngine {
     this.getCamera().add(this.audioListener);
 
     this.setupInputHandlers();
+    this.setupMobileUI();
     this.setupGameEventListeners();
     this.setupAudioSystem();
     this.init();
@@ -114,10 +119,102 @@ export class AsteroidBlast extends GameEngine {
    * Setup input handlers using InputManager
    */
   private setupInputHandlers(): void {
+    // Set canvas reference for touch coordinate calculation
+    this.inputManager.setCanvas(this.getRenderer().domElement);
+
     // Connect InputManager to DOM events
     this.inputManager.connect();
 
-    console.log("🎮 Input system connected");
+    console.log("🎮 Input system connected (keyboard + touch)");
+  }
+
+  /**
+   * Setup mobile UI elements and detection
+   */
+  private setupMobileUI(): void {
+    // Mobile detection
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) ||
+      (window.innerWidth <= 768 && window.innerHeight <= 1024);
+
+    const mobileInstructions = document.getElementById("mobileInstructions");
+    const touchLeft = document.getElementById("touchLeft");
+    const touchRight = document.getElementById("touchRight");
+
+    if (isMobile && mobileInstructions) {
+      // Show mobile instructions
+      mobileInstructions.style.display = "block";
+
+      // Auto-hide instructions after 5 seconds
+      setTimeout(() => {
+        if (mobileInstructions) {
+          mobileInstructions.style.opacity = "0";
+          setTimeout(() => {
+            mobileInstructions.style.display = "none";
+          }, 300);
+        }
+      }, 5000);
+
+      console.log("📱 Mobile UI enabled");
+    }
+
+    // Add touch feedback visual effects
+    if (touchLeft && touchRight) {
+      const canvas = this.getRenderer().domElement;
+
+      canvas.addEventListener(
+        "touchstart",
+        this.handleTouchFeedback.bind(this)
+      );
+      canvas.addEventListener("touchmove", this.handleTouchFeedback.bind(this));
+      canvas.addEventListener("touchend", this.clearTouchFeedback.bind(this));
+      canvas.addEventListener(
+        "touchcancel",
+        this.clearTouchFeedback.bind(this)
+      );
+    }
+  }
+
+  /**
+   * Handle touch feedback visual effects
+   */
+  private handleTouchFeedback(event: TouchEvent): void {
+    event.preventDefault();
+
+    const canvas = this.getRenderer().domElement;
+    const rect = canvas.getBoundingClientRect();
+    const touchLeft = document.getElementById("touchLeft");
+    const touchRight = document.getElementById("touchRight");
+
+    if (event.touches.length > 0 && touchLeft && touchRight) {
+      const touch = event.touches[0];
+      const x = touch.clientX - rect.left;
+      const centerX = rect.width / 2;
+
+      // Clear previous feedback
+      touchLeft.classList.remove("active");
+      touchRight.classList.remove("active");
+
+      // Add feedback based on touch position
+      if (x < centerX) {
+        touchLeft.classList.add("active");
+      } else {
+        touchRight.classList.add("active");
+      }
+    }
+  }
+
+  /**
+   * Clear touch feedback visual effects
+   */
+  private clearTouchFeedback(): void {
+    const touchLeft = document.getElementById("touchLeft");
+    const touchRight = document.getElementById("touchRight");
+
+    if (touchLeft) touchLeft.classList.remove("active");
+    if (touchRight) touchRight.classList.remove("active");
   }
 
   /**
@@ -210,11 +307,11 @@ export class AsteroidBlast extends GameEngine {
         .then((laserSound) => {
           if (laserSound) {
             // Add slight pitch variation for more dynamic audio
-            const pitchVariation = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
+            const pitchVariation = 0.4 + Math.random() * 0.2; // 0.4 to 0.6
             laserSound.setPlaybackRate(pitchVariation);
 
             // Vary volume slightly for more natural sound
-            const volumeVariation = volume * (0.8 + Math.random() * 0.4); // ±20% variation
+            const volumeVariation = volume * (0.3 + Math.random() * 0.4); // ±20% variation
             laserSound.setVolume(volumeVariation);
 
             laserSound.play();
@@ -293,7 +390,7 @@ export class AsteroidBlast extends GameEngine {
       if (bgMusic) {
         this.backgroundMusic = bgMusic;
         this.backgroundMusic.setLoop(true);
-        this.backgroundMusic.setVolume(0.3);
+        this.backgroundMusic.setVolume(0.7); // Set volume to 70%
         this.sounds.set("backgroundMusic" as SoundType, this.backgroundMusic);
 
         // Try to play it immediately
@@ -344,22 +441,39 @@ export class AsteroidBlast extends GameEngine {
     }
   }
   /**
-   * Handle input for spaceship movement
+   * Handle input for spaceship movement (keyboard and touch)
    */
   private handleInput(): void {
     if (!this.isInitialized) return;
 
-    // Spaceship movement using InputManager
-    if (
+    // Keyboard movement using InputManager
+    const keyboardLeft =
       this.inputManager.isKeyDown("ArrowLeft") ||
-      this.inputManager.isKeyDown("KeyA")
-    ) {
+      this.inputManager.isKeyDown("KeyA");
+    const keyboardRight =
+      this.inputManager.isKeyDown("ArrowRight") ||
+      this.inputManager.isKeyDown("KeyD");
+
+    // Touch movement using InputManager
+    let touchLeft = false;
+    let touchRight = false;
+
+    if (this.inputManager.isTouchActive()) {
+      const touchMovement = this.inputManager.getTouchMovementVector();
+      const touchSensitivity = 0.1; // Dead zone for touch
+
+      if (touchMovement.x < -touchSensitivity) {
+        touchLeft = true;
+      } else if (touchMovement.x > touchSensitivity) {
+        touchRight = true;
+      }
+    }
+
+    // Apply movement from keyboard or touch
+    if (keyboardLeft || touchLeft) {
       this.spaceship.moveLeft();
     }
-    if (
-      this.inputManager.isKeyDown("ArrowRight") ||
-      this.inputManager.isKeyDown("KeyD")
-    ) {
+    if (keyboardRight || touchRight) {
       this.spaceship.moveRight();
     }
   }
@@ -707,8 +821,8 @@ export class AsteroidBlast extends GameEngine {
       // Get asteroid position for particle effects
       const asteroidPosition = asteroid.getPosition().clone();
 
-      // Create explosion particle effects
-      this.createExplosionEffects(asteroidPosition);
+      // Create enhanced explosion particle effects with asteroid type scaling
+      this.createExplosionEffects(asteroidPosition, asteroidType);
 
       // Play explosion sound immediately
       this.playExplosionSound(0.6);
@@ -725,6 +839,8 @@ export class AsteroidBlast extends GameEngine {
         `💥 ${asteroidType} asteroid destroyed! +${points} points (Score: ${this.score})`
       );
     } else {
+      // Create smaller impact effect for non-destroying hits
+      this.createImpactEffect(asteroid.getPosition());
       console.log(
         `🎯 ${asteroid.getType()} asteroid hit! Damaged but still active`
       );
@@ -799,6 +915,9 @@ export class AsteroidBlast extends GameEngine {
 
     // Add points to score
     this.score += points;
+
+    // Create power-up collection visual effect
+    this.createPowerUpEffect(powerUp.getPosition(), powerUpType);
 
     // Apply power-up effect
     this.applyPowerUpEffect(powerUpType, properties);
@@ -898,13 +1017,380 @@ export class AsteroidBlast extends GameEngine {
   }
 
   /**
-   * Create explosion particle effects at given position
+   * Create enhanced explosion particle effects at given position
    */
-  private async createExplosionEffects(position: THREE.Vector3): Promise<void> {
-    console.log("🎆 Creating explosion effects at position:", position);
+  private async createExplosionEffects(
+    position: THREE.Vector3,
+    asteroidType?: string
+  ): Promise<void> {
+    console.log(
+      "🎆 Creating enhanced explosion effects at position:",
+      position
+    );
 
-    // Temporary simple explosion effect until shader issue is fixed
-    this.createSimpleExplosion(position);
+    // Create multiple layered effects for more impressive explosion
+    await Promise.all([
+      this.createMainExplosion(position, asteroidType),
+      this.createSparkEffect(position),
+      this.createShockwaveEffect(position),
+    ]);
+  }
+
+  /**
+   * Create main fire explosion effect
+   */
+  private async createMainExplosion(
+    position: THREE.Vector3,
+    asteroidType?: string
+  ): Promise<void> {
+    try {
+      // Scale particle count based on asteroid type
+      let particleCount = 100;
+      let explosionScale = 1.0;
+
+      if (asteroidType === "large") {
+        particleCount = 200;
+        explosionScale = 1.5;
+      } else if (asteroidType === "medium") {
+        particleCount = 150;
+        explosionScale = 1.2;
+      } else if (asteroidType === "small") {
+        particleCount = 80;
+        explosionScale = 0.8;
+      }
+
+      // Create fire explosion using the particle factory
+      await this.particleFactory.create(new FireExplosion(), position, {
+        particleCount,
+        emissionDuration: 0.4,
+        color: [0xff2200, 0xff6600, 0xffaa00, 0xffffff],
+        size: [0.1 * explosionScale, 0.6 * explosionScale],
+        velocity: [
+          new THREE.Vector3(-8 * explosionScale, 2, -8 * explosionScale),
+          new THREE.Vector3(
+            8 * explosionScale,
+            12 * explosionScale,
+            8 * explosionScale
+          ),
+        ],
+        lifetime: [0.6, 1.2],
+        spawnArea: { type: "sphere", size: 0.3 * explosionScale },
+      });
+
+      // The particle system is automatically added to the scene by the factory
+
+      console.log(`💥 Main explosion created with ${particleCount} particles`);
+    } catch (error) {
+      console.warn(
+        "⚠️ Failed to create main explosion, using fallback:",
+        error
+      );
+      this.createSimpleExplosion(position);
+    }
+  }
+
+  /**
+   * Create spark effect for metallic debris
+   */
+  private async createSparkEffect(position: THREE.Vector3): Promise<void> {
+    try {
+      await this.particleFactory.create(new Sparks(), position, {
+        particleCount: 30,
+        emissionDuration: 0.2,
+        color: [0xffff88, 0xffffff, 0xffffaa],
+        size: [0.05, 0.15],
+        velocity: [
+          new THREE.Vector3(-10, -2, -10),
+          new THREE.Vector3(10, 8, 10),
+        ],
+        lifetime: [0.8, 1.5],
+        gravity: -15,
+        spawnArea: { type: "sphere", size: 0.1 },
+      });
+
+      console.log("✨ Spark effect created");
+    } catch (error) {
+      console.warn("⚠️ Failed to create spark effect:", error);
+    }
+  }
+
+  /**
+   * Create shockwave effect using expanding ring of particles
+   */
+  private async createShockwaveEffect(position: THREE.Vector3): Promise<void> {
+    try {
+      // Create a ring of particles for shockwave
+      const shockwaveParticles: THREE.Mesh[] = [];
+      const particleCount = 24;
+      const geometry = new THREE.RingGeometry(0.1, 0.3, 8);
+
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const material = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0x88ccff),
+          transparent: true,
+          opacity: 0.8,
+          blending: THREE.AdditiveBlending,
+        });
+
+        const particle = new THREE.Mesh(geometry, material);
+        particle.position.copy(position);
+        particle.position.x += Math.cos(angle) * 5;
+        particle.position.y += Math.sin(angle) * 5;
+
+        shockwaveParticles.push(particle);
+        this.addToScene(particle);
+      }
+
+      // Animate shockwave expansion
+      this.animateShockwave(shockwaveParticles, position);
+
+      console.log("🌊 Shockwave effect created");
+    } catch (error) {
+      console.warn("⚠️ Failed to create shockwave effect:", error);
+    }
+  }
+
+  /**
+   * Animate shockwave expansion and fade
+   */
+  private animateShockwave(
+    particles: THREE.Mesh[],
+    center: THREE.Vector3
+  ): void {
+    const startTime = performance.now();
+    const duration = 800; // 0.8 seconds
+    const maxRadius = 60;
+
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      if (progress >= 1) {
+        // Remove particles when animation is complete
+        particles.forEach((particle) => {
+          this.removeFromScene(particle);
+          particle.geometry.dispose();
+          if (particle.material instanceof THREE.Material) {
+            particle.material.dispose();
+          }
+        });
+        return;
+      }
+
+      // Update each particle
+      particles.forEach((particle, index) => {
+        const angle = (index / particles.length) * Math.PI * 2;
+        const radius = progress * maxRadius;
+
+        // Update position
+        particle.position.x = center.x + Math.cos(angle) * radius;
+        particle.position.y = center.y + Math.sin(angle) * radius;
+
+        // Update opacity (fade out as it expands)
+        if (particle.material instanceof THREE.MeshBasicMaterial) {
+          particle.material.opacity = (1 - progress) * 0.6;
+        }
+
+        // Scale effect
+        const scale = 1 + progress * 2;
+        particle.scale.set(scale, scale, scale);
+      });
+
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+  }
+
+  /**
+   * Create impact effect for projectile hits that don't destroy asteroids
+   */
+  private async createImpactEffect(position: THREE.Vector3): Promise<void> {
+    try {
+      // Small spark burst for impact
+      await this.particleFactory.create(new Sparks(), position, {
+        particleCount: 15,
+        emissionDuration: 0.1,
+        color: [0xffff88, 0xffffff, 0xffffff],
+        size: [0.02, 0.08],
+        velocity: [new THREE.Vector3(-3, -1, -3), new THREE.Vector3(3, 4, 3)],
+        lifetime: [0.3, 0.8],
+        gravity: -8,
+        spawnArea: { type: "sphere", size: 0.05 },
+      });
+
+      console.log("💫 Impact effect created");
+    } catch (error) {
+      console.warn("⚠️ Failed to create impact effect:", error);
+    }
+  }
+
+  /**
+   * Create power-up collection effect
+   */
+  private async createPowerUpEffect(
+    position: THREE.Vector3,
+    powerUpType: string
+  ): Promise<void> {
+    try {
+      // Different colors based on power-up type
+      let effectColors = [0x00ff88, 0x88ffff, 0xffffff]; // Default green-cyan
+
+      switch (powerUpType) {
+        case "health":
+          effectColors = [0x00ff00, 0x88ff88, 0xffffff]; // Green
+          break;
+        case "rapidFire":
+          effectColors = [0xff4400, 0xff8800, 0xffaa00]; // Orange-red
+          break;
+        case "shield":
+          effectColors = [0x4488ff, 0x88aaff, 0xffffff]; // Blue
+          break;
+        case "damage":
+          effectColors = [0xff0088, 0xff44aa, 0xffffff]; // Pink-purple
+          break;
+      }
+
+      // Create upward flowing sparkle effect
+      await this.particleFactory.create(new Sparks(), position, {
+        particleCount: 25,
+        emissionDuration: 0.3,
+        color: effectColors,
+        size: [0.1, 0.3],
+        velocity: [new THREE.Vector3(-2, 8, -2), new THREE.Vector3(2, 15, 2)],
+        lifetime: [1.0, 1.8],
+        gravity: -2, // Light gravity for floating effect
+        spawnArea: { type: "sphere", size: 0.2 },
+        blending: THREE.AdditiveBlending,
+      });
+
+      console.log(`⚡ Power-up collection effect created for ${powerUpType}`);
+    } catch (error) {
+      console.warn("⚠️ Failed to create power-up effect:", error);
+    }
+  }
+
+  // Engine trail timing control
+  private lastEngineTrailTime: number = 0;
+  private engineTrailInterval: number = 50; // 50ms between trail particles
+
+  /**
+   * Create continuous engine trail effect behind spaceship
+   */
+  private createEngineTrail(): void {
+    const currentTime = performance.now();
+
+    // Only create trail particles at intervals to avoid overwhelming
+    if (currentTime - this.lastEngineTrailTime < this.engineTrailInterval) {
+      return;
+    }
+
+    try {
+      const spaceshipPos = this.spaceship.getPosition();
+
+      // Create trail position slightly behind and below the spaceship
+      const trailPosition = new THREE.Vector3(
+        spaceshipPos.x + (Math.random() - 0.5) * 8, // Slight random spread
+        spaceshipPos.y - 25, // Behind the spaceship
+        spaceshipPos.z
+      );
+
+      // Create small, short-lived particles for engine trail
+      this.createSimpleTrailParticles(trailPosition);
+
+      this.lastEngineTrailTime = currentTime;
+    } catch (error) {
+      console.warn("⚠️ Failed to create engine trail:", error);
+    }
+  }
+
+  /**
+   * Create simple trail particles (optimized for performance)
+   */
+  private createSimpleTrailParticles(position: THREE.Vector3): void {
+    const particleCount = 3; // Small number for performance
+    const particles: THREE.Mesh[] = [];
+    const geometry = new THREE.SphereGeometry(1, 4, 4);
+
+    for (let i = 0; i < particleCount; i++) {
+      // Blue-white engine flame colors
+      const hue = 200 + Math.random() * 60; // Blue to cyan range
+      const material = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setHSL(hue / 360, 0.8, 0.8),
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+      });
+
+      const particle = new THREE.Mesh(geometry, material);
+      particle.position.copy(position);
+      particle.position.x += (Math.random() - 0.5) * 4;
+      particle.position.y += (Math.random() - 0.5) * 4;
+
+      // Downward velocity for trailing effect
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 20,
+        -50 - Math.random() * 30, // Downward motion
+        (Math.random() - 0.5) * 10
+      );
+
+      (particle as any).velocity = velocity;
+      (particle as any).life = 0.4; // Short lifetime
+
+      particles.push(particle);
+      this.addToScene(particle);
+    }
+
+    // Animate trail particles
+    this.animateTrailParticles(particles);
+  }
+
+  /**
+   * Animate trail particles (optimized)
+   */
+  private animateTrailParticles(particles: THREE.Mesh[]): void {
+    const startTime = performance.now();
+    const maxLifetime = 400; // 0.4 seconds
+
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+
+      if (elapsed >= maxLifetime) {
+        // Clean up particles
+        particles.forEach((particle) => {
+          this.removeFromScene(particle);
+          particle.geometry.dispose();
+          if (particle.material instanceof THREE.Material) {
+            particle.material.dispose();
+          }
+        });
+        return;
+      }
+
+      const deltaTime = 0.016; // ~60fps
+      const lifeProgress = elapsed / maxLifetime;
+
+      particles.forEach((particle) => {
+        const velocity = (particle as any).velocity;
+
+        // Update position
+        particle.position.add(velocity.clone().multiplyScalar(deltaTime));
+
+        // Fade out over time
+        if (particle.material instanceof THREE.MeshBasicMaterial) {
+          particle.material.opacity = (1 - lifeProgress) * 0.6;
+        }
+
+        // Slight scale reduction over time
+        const scale = 1 - lifeProgress * 0.5;
+        particle.scale.set(scale, scale, scale);
+      });
+
+      requestAnimationFrame(animate);
+    };
+
+    animate();
   }
 
   /**
@@ -1011,6 +1497,9 @@ export class AsteroidBlast extends GameEngine {
     // Update spaceship
     const worldBounds = this.getWorldBounds();
     this.spaceship.update(deltaTime, worldBounds);
+
+    // Add engine trail effect
+    this.createEngineTrail();
 
     // Update projectiles
     this.updateProjectiles(deltaTime);
@@ -1151,12 +1640,18 @@ export class AsteroidBlast extends GameEngine {
       }
     }
 
-    // Shield timer (shield HP is managed by spaceship)
+    // Shield timer and deactivation
     if (this.activePowerUps.shield > 0) {
+      const wasActive = this.activePowerUps.shield > 0;
       this.activePowerUps.shield = Math.max(
         0,
         this.activePowerUps.shield - deltaTime
       );
+
+      // Deactivate shield when timer reaches 0
+      if (wasActive && this.activePowerUps.shield === 0) {
+        this.spaceship.deactivateShield();
+      }
     }
 
     // Damage boost timer and deactivation

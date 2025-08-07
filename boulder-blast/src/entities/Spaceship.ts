@@ -26,8 +26,14 @@ export class Spaceship {
   private shieldHp: number = 0;
   private damageMultiplier: number = 1.0; // Damage boost multiplier
 
+  // Shield visual properties
+  private defaultTexture: THREE.Texture | null = null;
+  private shieldTexture: THREE.Texture | null = null;
+  private textureLoader: THREE.TextureLoader;
+
   constructor(worldBounds: { left: number; right: number; bottom: number }) {
     this.position = new THREE.Vector3(0, worldBounds.bottom + 60, 0);
+    this.textureLoader = new THREE.TextureLoader();
     this.mesh = this.createSpaceshipMesh();
     this.updateMeshPosition();
   }
@@ -39,23 +45,64 @@ export class Spaceship {
     // Create plane geometry for sprite
     const geometry = new THREE.PlaneGeometry(60, 60); // Adjust size as needed
 
-    // Load spaceship sprite texture
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load("/Sprites/Ships/spaceShips_001.png");
+    // Load default spaceship sprite texture
+    this.defaultTexture = this.textureLoader.load(
+      "/Sprites/Ships/spaceShips_001.png"
+    );
 
-    // Configure texture for pixel art
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.generateMipmaps = false;
+    // Load shield spaceship sprite texture
+    this.shieldTexture = this.textureLoader.load(
+      "/Sprites/Ships/spaceShips_007.png"
+    );
 
-    // Create material with sprite texture
+    // Configure textures for pixel art
+    this.configureTexture(this.defaultTexture);
+    this.configureTexture(this.shieldTexture);
+
+    // Create material with default sprite texture
     const material = new THREE.MeshBasicMaterial({
-      map: texture,
+      map: this.defaultTexture,
       transparent: true,
       alphaTest: 0.1, // Remove transparent pixels
     });
 
     return new THREE.Mesh(geometry, material);
+  }
+
+  /**
+   * Configure texture settings for pixel art sprites
+   */
+  private configureTexture(texture: THREE.Texture): void {
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.generateMipmaps = false;
+  }
+
+  /**
+   * Update spaceship visual based on shield status
+   */
+  private updateShieldVisual(): void {
+    if (this.hasShield && this.shieldHp > 0) {
+      // Switch to shield spaceship texture
+      if (
+        this.shieldTexture &&
+        this.mesh.material instanceof THREE.MeshBasicMaterial
+      ) {
+        this.mesh.material.map = this.shieldTexture;
+        this.mesh.material.needsUpdate = true;
+        console.log("🛡️ Switched to shield spaceship visual");
+      }
+    } else {
+      // Switch back to default spaceship texture
+      if (
+        this.defaultTexture &&
+        this.mesh.material instanceof THREE.MeshBasicMaterial
+      ) {
+        this.mesh.material.map = this.defaultTexture;
+        this.mesh.material.needsUpdate = true;
+        console.log("🚀 Switched back to default spaceship visual");
+      }
+    }
   }
 
   /**
@@ -149,6 +196,7 @@ export class Spaceship {
   public activateShield(shieldHp: number): void {
     this.hasShield = true;
     this.shieldHp = shieldHp;
+    this.updateShieldVisual();
     console.log(`🛡️ Shield activated with ${shieldHp} HP!`);
   }
 

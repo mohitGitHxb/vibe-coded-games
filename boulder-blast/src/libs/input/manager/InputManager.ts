@@ -10,6 +10,7 @@ import type {
   KeyboardState,
   MouseState,
   TouchState,
+  TouchPoint,
   Vector2Like,
 } from "../types/InputTypes.js";
 
@@ -130,6 +131,20 @@ export class InputManager {
         this.handleContextMenu(e)
       );
     }
+
+    // Touch events
+    this.addEventListener(target, "touchstart", (e) =>
+      this.handleTouchStart(e as TouchEvent)
+    );
+    this.addEventListener(target, "touchmove", (e) =>
+      this.handleTouchMove(e as TouchEvent)
+    );
+    this.addEventListener(target, "touchend", (e) =>
+      this.handleTouchEnd(e as TouchEvent)
+    );
+    this.addEventListener(target, "touchcancel", (e) =>
+      this.handleTouchCancel(e as TouchEvent)
+    );
 
     // Window focus events to reset state
     this.addEventListener(window, "blur", () => this.handleWindowBlur());
@@ -260,6 +275,56 @@ export class InputManager {
    */
   public getTouchState(): Readonly<TouchState> {
     return this.state.touch;
+  }
+
+  /**
+   * Check if there are active touches
+   */
+  public isTouchActive(): boolean {
+    return this.state.touch.isActive && this.state.touch.touches.size > 0;
+  }
+
+  /**
+   * Get the first (primary) touch point
+   */
+  public getPrimaryTouch(): TouchPoint | null {
+    if (this.state.touch.touches.size === 0) return null;
+    return this.state.touch.touches.values().next().value || null;
+  }
+
+  /**
+   * Get normalized touch movement vector for the primary touch
+   * This is useful for controlling spaceship movement
+   */
+  public getTouchMovementVector(): Vector2Like {
+    const primaryTouch = this.getPrimaryTouch();
+    if (!primaryTouch) {
+      return { x: 0, y: 0 };
+    }
+
+    // Convert normalized coordinates to movement vector
+    // Touch at center (0,0) = no movement
+    // Touch at edges = movement in that direction
+    return {
+      x: primaryTouch.position.normalized.x,
+      y: -primaryTouch.position.normalized.y, // Invert Y for game coordinates
+    };
+  }
+
+  /**
+   * Get touch position relative to canvas center
+   * Returns values from -1 to 1 for both x and y
+   */
+  public getTouchDirection(): Vector2Like {
+    const primaryTouch = this.getPrimaryTouch();
+    if (!primaryTouch) {
+      return { x: 0, y: 0 };
+    }
+
+    return {
+      x: primaryTouch.position.normalized.x,
+      y: primaryTouch.position.normalized.y,
+    };
   }
 
   /**
@@ -442,6 +507,133 @@ export class InputManager {
 
   private handleMouseEnter(): void {
     this.state.mouse.isOverCanvas = true;
+  }
+
+  private handleTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 0) return;
+
+    this.state.touch.isActive = true;
+    this.state.touch.touches.clear();
+
+    for (let i = 0; i < event.touches.length; i++) {
+      const touch = event.touches[i];
+      const rect = this.canvas?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+      };
+
+      const touchPoint: TouchPoint = {
+        id: touch.identifier,
+        position: {
+          screen: { x: touch.screenX, y: touch.screenY },
+          canvas: { x: touch.clientX - rect.left, y: touch.clientY - rect.top },
+          normalized: {
+            x: rect.width
+              ? ((touch.clientX - rect.left) / rect.width) * 2 - 1
+              : 0,
+            y: rect.height
+              ? -(((touch.clientY - rect.top) / rect.height) * 2 - 1)
+              : 0,
+          },
+        },
+        force: (touch as any).force || 1.0,
+      };
+
+      this.state.touch.touches.set(touch.identifier, touchPoint);
+    }
+
+    if (this.config.preventDefault) {
+      event.preventDefault();
+    }
+    if (this.config.stopPropagation) {
+      event.stopPropagation();
+    }
+
+    if (DEBUG_SETTINGS.LOG_INPUT_EVENTS) {
+      console.log("Touch start:", this.state.touch);
+    }
+  }
+
+  private handleTouchMove(event: TouchEvent): void {
+    if (!this.state.touch.isActive || event.touches.length === 0) return;
+
+    const rect = this.canvas?.getBoundingClientRect() || {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0,
+    };
+
+    for (let i = 0; i < event.touches.length; i++) {
+      const touch = event.touches[i];
+      const existingTouch = this.state.touch.touches.get(touch.identifier);
+
+      if (existingTouch) {
+        const touchPoint: TouchPoint = {
+          id: touch.identifier,
+          position: {
+            screen: { x: touch.screenX, y: touch.screenY },
+            canvas: {
+              x: touch.clientX - rect.left,
+              y: touch.clientY - rect.top,
+            },
+            normalized: {
+              x: rect.width
+                ? ((touch.clientX - rect.left) / rect.width) * 2 - 1
+                : 0,
+              y: rect.height
+                ? -(((touch.clientY - rect.top) / rect.height) * 2 - 1)
+                : 0,
+            },
+          },
+          force: (touch as any).force || 1.0,
+        };
+
+        this.state.touch.touches.set(touch.identifier, touchPoint);
+      }
+    }
+
+    if (this.config.preventDefault) {
+      event.preventDefault();
+    }
+    if (this.config.stopPropagation) {
+      event.stopPropagation();
+    }
+
+    if (DEBUG_SETTINGS.LOG_INPUT_EVENTS) {
+      console.log("Touch move:", this.state.touch);
+    }
+  }
+
+  private handleTouchEnd(event: TouchEvent): void {
+    // Remove ended touches
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      const touch = event.changedTouches[i];
+      this.state.touch.touches.delete(touch.identifier);
+    }
+
+    // Deactivate if no touches remain
+    if (this.state.touch.touches.size === 0) {
+      this.state.touch.isActive = false;
+    }
+
+    if (this.config.preventDefault) {
+      event.preventDefault();
+    }
+    if (this.config.stopPropagation) {
+      event.stopPropagation();
+    }
+
+    if (DEBUG_SETTINGS.LOG_INPUT_EVENTS) {
+      console.log("Touch end:", this.state.touch);
+    }
+  }
+
+  private handleTouchCancel(event: TouchEvent): void {
+    // Same behavior as touch end
+    this.handleTouchEnd(event);
   }
 
   private handleContextMenu(event: Event): void {
