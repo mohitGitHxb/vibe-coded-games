@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Boulder Blast</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Game HUD Overlay -->
+      <div class="game-ui">
+        <!-- Top HUD Bar -->
+        <div class="hud-top">
+          <div class="hud-section">
+            <div class="stat-item">
+              <span class="stat-icon">🎯</span>
+              <span class="stat-label">Score:</span>
+              <span class="stat-value" id="score">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">💥</span>
+              <span class="stat-label">Destroyed:</span>
+              <span class="stat-value" id="destroyed">0</span>
+            </div>
+          </div>
+
+          <div class="hud-center">
+            <div class="level-indicator">
+              <span class="level-label">Level</span>
+              <span class="level-value" id="level">1</span>
+            </div>
+          </div>
+
+          <div class="hud-section">
+            <div class="stat-item">
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-label">Time:</span>
+              <span class="stat-value" id="gameTime">00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom HUD Bar -->
+        <div class="hud-bottom">
+          <!-- Health Bar -->
+          <div class="health-container">
+            <div class="health-label">
+              <span class="health-icon">❤️</span>
+              <span>HP</span>
+            </div>
+            <div class="health-bar">
+              <div
+                class="health-bar-fill"
+                id="healthBar"
+                style="width: 100%"
+              ></div>
+              <div class="health-text">
+                <span id="healthCurrent">100</span>/<span id="healthMax"
+                  >100</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Power-up Status -->
+          <div class="powerup-status">
+            <div
+              class="powerup-item"
+              id="powerupRapidFire"
+              style="display: none"
+            >
+              <span class="powerup-icon">🔥</span>
+              <div class="powerup-timer" id="rapidFireTimer">5</div>
+            </div>
+            <div class="powerup-item" id="powerupShield" style="display: none">
+              <span class="powerup-icon">🛡️</span>
+              <div class="powerup-timer" id="shieldTimer">8</div>
+            </div>
+            <div class="powerup-item" id="powerupDamage" style="display: none">
+              <span class="powerup-icon">⚡</span>
+              <div class="powerup-timer" id="damageTimer">15</div>
+            </div>
+          </div>
+
+          <!-- Controls Hint -->
+          <div class="controls-hint">
+            <div class="control-item">
+              <span class="key">WASD</span>
+              <span class="action">Move</span>
+            </div>
+            <div class="control-item">
+              <span class="key">Auto</span>
+              <span class="action">Fire</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Messages -->
+        <div class="message-container" id="messageContainer">
+          <!-- Dynamic messages will appear here -->
+        </div>
+
+        <!-- Game Over Screen (hidden by default) -->
+        <div class="game-over-screen" id="gameOverScreen" style="display: none">
+          <div class="game-over-content">
+            <h1>💀 GAME OVER</h1>
+            <div class="final-stats">
+              <div class="final-stat">
+                <span class="final-label">Final Score:</span>
+                <span class="final-value" id="finalScore">0</span>
+              </div>
+              <div class="final-stat">
+                <span class="final-label">Asteroids Destroyed:</span>
+                <span class="final-value" id="finalDestroyed">0</span>
+              </div>
+              <div class="final-stat">
+                <span class="final-label">Time Survived:</span>
+                <span class="final-value" id="finalTime">00:00</span>
+              </div>
+            </div>
+            <button class="restart-btn" id="restartBtn">🚀 Play Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

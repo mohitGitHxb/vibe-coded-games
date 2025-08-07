@@ -1,0 +1,465 @@
+/* Asteroid Blast - Game Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Courier New", monospace;
+  background: #000811;
+  color: #ffffff;
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated; /* For crisp pixel art sprites */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Loading indicator (for future use) */
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: #4169e1;
+  z-index: 1000;
+}
+
+/* Game UI overlay container */
+.game-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  font-family: "Courier New", monospace;
+}
+
+/* Top HUD Bar */
+.hud-top {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  pointer-events: none;
+}
+
+.hud-section {
+  display: flex;
+  gap: 25px;
+}
+
+.hud-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 8, 17, 0.85);
+  border: 2px solid #4169e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 10px rgba(65, 105, 225, 0.3);
+}
+
+.stat-icon {
+  font-size: 16px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #cccccc;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.stat-value {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Level Indicator */
+.level-indicator {
+  background: linear-gradient(135deg, #ff6600, #ff3300);
+  border: 2px solid #ff8800;
+  border-radius: 20px;
+  padding: 10px 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(255, 102, 0, 0.5);
+  animation: pulse 2s infinite;
+}
+
+.level-label {
+  display: block;
+  font-size: 10px;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.level-value {
+  display: block;
+  font-size: 24px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Bottom HUD Bar */
+.hud-bottom {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 0 30px;
+  pointer-events: none;
+}
+
+/* Health Bar */
+.health-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.health-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #cccccc;
+  font-weight: bold;
+}
+
+.health-icon {
+  font-size: 14px;
+}
+
+.health-bar {
+  position: relative;
+  width: 200px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #555;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.health-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff3300, #ff6600, #00ff00);
+  border-radius: 8px;
+  transition: width 0.3s ease, background 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.health-bar-fill[style*="width: 100%"] {
+  background: linear-gradient(90deg, #00ff00, #66ff00);
+}
+.health-bar-fill[style*="width: 75%"] {
+  background: linear-gradient(90deg, #66ff00, #ffff00);
+}
+.health-bar-fill[style*="width: 50%"] {
+  background: linear-gradient(90deg, #ffff00, #ff6600);
+}
+.health-bar-fill[style*="width: 25%"] {
+  background: linear-gradient(90deg, #ff6600, #ff3300);
+}
+
+.health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Power-up Status */
+.powerup-status {
+  display: flex;
+  gap: 10px;
+}
+
+.powerup-item {
+  position: relative;
+  background: rgba(0, 8, 17, 0.9);
+  border: 2px solid;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: powerupGlow 1.5s infinite;
+}
+
+.powerup-item .powerup-icon {
+  font-size: 18px;
+}
+
+.powerup-timer {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: #ff3300;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border: 2px solid #ffffff;
+}
+
+#powerupRapidFire {
+  border-color: #ff6600;
+}
+#powerupShield {
+  border-color: #0066ff;
+}
+#powerupMultiShot {
+  border-color: #9900ff;
+}
+#powerupRare {
+  border-color: #ff00ff;
+}
+
+@keyframes powerupGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor;
+  }
+}
+
+/* Controls Hint */
+.controls-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #888888;
+}
+
+.key {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: bold;
+  color: #cccccc;
+  min-width: 30px;
+  text-align: center;
+}
+
+.action {
+  color: #aaaaaa;
+}
+
+/* Message Container */
+.message-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.game-message {
+  background: rgba(0, 8, 17, 0.9);
+  border: 2px solid #4169e1;
+  border-radius: 8px;
+  padding: 15px 20px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 20px rgba(65, 105, 225, 0.5);
+  animation: messageSlide 0.5s ease, messageFade 3s ease 2s forwards;
+}
+
+@keyframes messageSlide {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes messageFade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Game Over Screen */
+.game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  backdrop-filter: blur(8px);
+}
+
+.game-over-content {
+  background: linear-gradient(135deg, #000811, #1a1a2e);
+  border: 3px solid #ff3300;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(255, 51, 0, 0.5);
+  max-width: 400px;
+  width: 90%;
+}
+
+.game-over-content h1 {
+  font-size: 36px;
+  color: #ff3300;
+  margin-bottom: 30px;
+  text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
+}
+
+.final-stats {
+  margin-bottom: 30px;
+}
+
+.final-stat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.final-label {
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.final-value {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.restart-btn {
+  background: linear-gradient(135deg, #ff6600, #ff3300);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+  pointer-events: all;
+}
+
+.restart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.5);
+}
+
+.restart-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive design for mobile/web */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .loading {
+    font-size: 1.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+  }
+
+  .loading {
+    font-size: 1em;
+  }
+}
+
+/* Ensure smooth gameplay on mobile */
+@media (max-device-width: 768px) {
+  canvas {
+    touch-action: none;
+  }
+}
