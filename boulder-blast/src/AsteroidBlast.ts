@@ -132,33 +132,8 @@ export class AsteroidBlast extends GameEngine {
    * Setup mobile UI elements and detection
    */
   private setupMobileUI(): void {
-    // Mobile detection
-    const isMobile =
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      ) ||
-      (window.innerWidth <= 768 && window.innerHeight <= 1024);
-
-    const mobileInstructions = document.getElementById("mobileInstructions");
     const touchLeft = document.getElementById("touchLeft");
     const touchRight = document.getElementById("touchRight");
-
-    if (isMobile && mobileInstructions) {
-      // Show mobile instructions
-      mobileInstructions.style.display = "block";
-
-      // Auto-hide instructions after 5 seconds
-      setTimeout(() => {
-        if (mobileInstructions) {
-          mobileInstructions.style.opacity = "0";
-          setTimeout(() => {
-            mobileInstructions.style.display = "none";
-          }, 300);
-        }
-      }, 5000);
-
-      console.log("📱 Mobile UI enabled");
-    }
 
     // Add touch feedback visual effects
     if (touchLeft && touchRight) {
@@ -956,8 +931,6 @@ export class AsteroidBlast extends GameEngine {
           health: this.spaceship.getHP(),
           maxHealth: this.spaceship.getMaxHP(),
           score: this.score,
-          asteroidsDestroyed: this.asteroidsDestroyed,
-          level: this.difficultyLevel,
           gameTime: Date.now() - this.gameStartTime,
         });
         break;
@@ -993,17 +966,13 @@ export class AsteroidBlast extends GameEngine {
    * Handle game over scenario
    */
   private handleGameOver(): void {
-    console.log(
-      `💀 GAME OVER! Final Score: ${this.score} | Asteroids Destroyed: ${this.asteroidsDestroyed}`
-    );
+    console.log(`💀 GAME OVER! Final Score: ${this.score}`);
 
     // Show game over screen with final stats
     const finalStats: GameStats = {
       score: this.score,
-      asteroidsDestroyed: this.asteroidsDestroyed,
       health: 0,
       maxHealth: this.spaceship.getMaxHP(),
-      level: this.difficultyLevel,
       gameTime: (performance.now() - this.gameStartTime) / 1000,
     };
 
@@ -1611,10 +1580,8 @@ export class AsteroidBlast extends GameEngine {
   private updateHUD(): void {
     const stats: GameStats = {
       score: this.score,
-      asteroidsDestroyed: this.asteroidsDestroyed,
       health: this.spaceship.getHP(),
       maxHealth: this.spaceship.getMaxHP(),
-      level: this.difficultyLevel,
       gameTime: (performance.now() - this.gameStartTime) / 1000,
     };
 
@@ -1642,16 +1609,13 @@ export class AsteroidBlast extends GameEngine {
 
     // Shield timer and deactivation
     if (this.activePowerUps.shield > 0) {
-      const wasActive = this.activePowerUps.shield > 0;
       this.activePowerUps.shield = Math.max(
         0,
         this.activePowerUps.shield - deltaTime
       );
 
-      // Deactivate shield when timer reaches 0
-      if (wasActive && this.activePowerUps.shield === 0) {
-        this.spaceship.deactivateShield();
-      }
+      // Shield power-up has expired, but shield will deactivate
+      // automatically when shield HP reaches 0
     }
 
     // Damage boost timer and deactivation

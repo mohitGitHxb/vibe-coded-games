@@ -12,57 +12,48 @@
       <div class="game-ui">
         <!-- Top HUD Bar -->
         <div class="hud-top">
-          <div class="hud-section">
+          <div class="hud-left">
             <div class="stat-item">
               <span class="stat-icon">🎯</span>
               <span class="stat-label">Score:</span>
               <span class="stat-value" id="score">0</span>
             </div>
             <div class="stat-item">
-              <span class="stat-icon">💥</span>
-              <span class="stat-label">Destroyed:</span>
-              <span class="stat-value" id="destroyed">0</span>
+              <span class="stat-icon">⏱️</span>
+              <span class="stat-label">Time:</span>
+              <span class="stat-value" id="gameTime">00:00</span>
             </div>
           </div>
 
           <div class="hud-center">
-            <div class="level-indicator">
-              <span class="level-label">Level</span>
-              <span class="level-value" id="level">1</span>
-            </div>
+            <!-- Empty center space -->
           </div>
 
-          <div class="hud-section">
-            <div class="stat-item">
-              <span class="stat-icon">⏱️</span>
-              <span class="stat-label">Time:</span>
-              <span class="stat-value" id="gameTime">00:00</span>
+          <div class="hud-right">
+            <!-- Health Bar -->
+            <div class="health-container">
+              <div class="health-label">
+                <span class="health-icon">❤️</span>
+                <span>HP</span>
+              </div>
+              <div class="health-bar">
+                <div
+                  class="health-bar-fill"
+                  id="healthBar"
+                  style="width: 100%"
+                ></div>
+                <div class="health-text">
+                  <span id="healthCurrent">100</span>/<span id="healthMax"
+                    >100</span
+                  >
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Bottom HUD Bar -->
         <div class="hud-bottom">
-          <!-- Health Bar -->
-          <div class="health-container">
-            <div class="health-label">
-              <span class="health-icon">❤️</span>
-              <span>HP</span>
-            </div>
-            <div class="health-bar">
-              <div
-                class="health-bar-fill"
-                id="healthBar"
-                style="width: 100%"
-              ></div>
-              <div class="health-text">
-                <span id="healthCurrent">100</span>/<span id="healthMax"
-                  >100</span
-                >
-              </div>
-            </div>
-          </div>
-
           <!-- Power-up Status -->
           <div class="powerup-status">
             <div
@@ -82,18 +73,6 @@
               <div class="powerup-timer" id="damageTimer">15</div>
             </div>
           </div>
-
-          <!-- Controls Hint -->
-          <div class="controls-hint">
-            <div class="control-item">
-              <span class="key">WASD</span>
-              <span class="action">Move</span>
-            </div>
-            <div class="control-item">
-              <span class="key">Auto</span>
-              <span class="action">Fire</span>
-            </div>
-          </div>
         </div>
 
         <!-- Game Messages -->
@@ -111,10 +90,6 @@
                 <span class="final-value" id="finalScore">0</span>
               </div>
               <div class="final-stat">
-                <span class="final-label">Asteroids Destroyed:</span>
-                <span class="final-value" id="finalDestroyed">0</span>
-              </div>
-              <div class="final-stat">
                 <span class="final-label">Time Survived:</span>
                 <span class="final-value" id="finalTime">00:00</span>
               </div>
@@ -122,15 +97,6 @@
             <button class="restart-btn" id="restartBtn">🚀 Play Again</button>
           </div>
         </div>
-      </div>
-
-      <!-- Mobile Instructions -->
-      <div
-        class="mobile-instructions"
-        id="mobileInstructions"
-        style="display: none"
-      >
-        🎮 Touch left/right sides to move • Auto-fire enabled
       </div>
 
       <!-- Touch Feedback Areas -->

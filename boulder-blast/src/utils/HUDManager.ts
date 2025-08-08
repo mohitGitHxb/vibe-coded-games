@@ -5,10 +5,8 @@
 
 export interface GameStats {
   score: number;
-  asteroidsDestroyed: number;
   health: number;
   maxHealth: number;
-  level: number;
   gameTime: number;
 }
 
@@ -21,8 +19,6 @@ export interface PowerUpStatus {
 export class HUDManager {
   // UI Element references
   private scoreElement!: HTMLElement;
-  private destroyedElement!: HTMLElement;
-  private levelElement!: HTMLElement;
   private gameTimeElement!: HTMLElement;
   private healthBarElement!: HTMLElement;
   private healthCurrentElement!: HTMLElement;
@@ -40,7 +36,6 @@ export class HUDManager {
   private messageContainer!: HTMLElement;
   private gameOverScreen!: HTMLElement;
   private finalScoreElement!: HTMLElement;
-  private finalDestroyedElement!: HTMLElement;
   private finalTimeElement!: HTMLElement;
   private restartBtnElement!: HTMLElement;
 
@@ -59,8 +54,6 @@ export class HUDManager {
   private initializeElements(): void {
     // Main stats
     this.scoreElement = this.getElement("score");
-    this.destroyedElement = this.getElement("destroyed");
-    this.levelElement = this.getElement("level");
     this.gameTimeElement = this.getElement("gameTime");
 
     // Health bar
@@ -80,7 +73,6 @@ export class HUDManager {
     this.messageContainer = this.getElement("messageContainer");
     this.gameOverScreen = this.getElement("gameOverScreen");
     this.finalScoreElement = this.getElement("finalScore");
-    this.finalDestroyedElement = this.getElement("finalDestroyed");
     this.finalTimeElement = this.getElement("finalTime");
     this.restartBtnElement = this.getElement("restartBtn");
   }
@@ -112,8 +104,6 @@ export class HUDManager {
    */
   public updateStats(stats: GameStats): void {
     this.scoreElement.textContent = stats.score.toLocaleString();
-    this.destroyedElement.textContent = stats.asteroidsDestroyed.toString();
-    this.levelElement.textContent = stats.level.toString();
 
     // Update game time
     const gameTime = (performance.now() - this.gameStartTime) / 1000;
@@ -220,8 +210,6 @@ export class HUDManager {
     const seconds = Math.floor(gameTime % 60);
 
     this.finalScoreElement.textContent = stats.score.toLocaleString();
-    this.finalDestroyedElement.textContent =
-      stats.asteroidsDestroyed.toString();
     this.finalTimeElement.textContent = `${minutes
       .toString()
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
@@ -256,10 +244,8 @@ export class HUDManager {
     // Reset stats
     this.updateStats({
       score: 0,
-      asteroidsDestroyed: 0,
       health: 100,
       maxHealth: 100,
-      level: 1,
       gameTime: 0,
     });
   }

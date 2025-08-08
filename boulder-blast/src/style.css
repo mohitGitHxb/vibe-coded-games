@@ -69,15 +69,22 @@ canvas {
   pointer-events: none;
 }
 
-.hud-section {
+.hud-left {
   display: flex;
   gap: 25px;
+  align-items: center;
 }
 
 .hud-center {
-  flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.hud-right {
+  display: flex;
+  gap: 25px;
+  align-items: center;
 }
 
 .stat-item {
@@ -154,7 +161,7 @@ canvas {
   left: 0;
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: end;
   padding: 0 30px;
   pointer-events: none;
@@ -449,6 +456,45 @@ canvas {
   .loading {
     font-size: 1.2em;
   }
+
+  /* Responsive HUD layout for tablets */
+  .hud-top {
+    padding: 0 20px;
+  }
+
+  .hud-section {
+    gap: 15px;
+  }
+
+  .stat-item {
+    padding: 6px 10px;
+  }
+
+  .stat-value {
+    min-width: 30px;
+  }
+}
+
+/* Responsive layout for tablets */
+@media (max-width: 768px) {
+  .hud-top {
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+
+  .hud-left {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .hud-center {
+    display: none; /* Hide empty center on tablets */
+  }
+
+  .hud-right {
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 480px) {
@@ -458,6 +504,63 @@ canvas {
 
   .loading {
     font-size: 1em;
+  }
+
+  /* Mobile HUD layout - Score/time in column, health justified right */
+  .hud-top {
+    padding: 0 15px;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .hud-left {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .hud-center {
+    display: none; /* Hide empty center on mobile */
+  }
+
+  .hud-right {
+    justify-content: flex-end;
+  }
+
+  .stat-item {
+    padding: 5px 8px;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .stat-icon {
+    font-size: 12px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 12px;
+    min-width: 25px;
+  }
+
+  .health-container {
+    gap: 3px;
+  }
+
+  .health-label {
+    font-size: 10px;
+  }
+
+  .health-bar {
+    width: 120px;
+    height: 16px;
+  }
+
+  .health-text {
+    font-size: 9px;
   }
 }
 
@@ -481,23 +584,6 @@ canvas {
     font-size: 14px;
     padding: 8px 12px;
     margin: 4px;
-  }
-
-  /* Game instructions for mobile */
-  .mobile-instructions {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 10px 15px;
-    border-radius: 10px;
-    font-size: 14px;
-    text-align: center;
-    pointer-events: none;
-    z-index: 1000;
-    transition: opacity 0.3s ease;
   }
 
   /* Touch feedback areas */
@@ -529,8 +615,5 @@ canvas {
 
 /* Large mobile screens */
 @media (max-device-width: 1024px) and (orientation: landscape) {
-  .mobile-instructions {
-    font-size: 16px;
-    bottom: 30px;
-  }
+  /* Mobile instructions removed - using direct touch controls */
 }
