@@ -37,21 +37,83 @@ export class GameEngine {
    * Initialize orthographic camera for 2D gameplay
    */
   private initCamera(): void {
-    const aspect = this.WORLD_WIDTH / this.WORLD_HEIGHT;
-    const height = this.WORLD_HEIGHT / 2;
-    const width = height * aspect;
-
-    this.camera = new THREE.OrthographicCamera(
-      -width,
-      width, // left, right
-      height,
-      -height, // top, bottom
-      0.1,
-      5000 // near, far - increased for skybox visibility
-    );
+    // Start with a base viewport size that works well for gameplay
+    this.updateCameraProjection();
 
     this.camera.position.set(0, 0, 10);
     this.camera.lookAt(0, 0, 0);
+  }
+
+  /**
+   * Update camera projection based on current canvas size
+   * Mobile-first approach: prioritize mobile experience
+   */
+  private updateCameraProjection(): void {
+    const canvasWidth = Math.max(320, this.canvas.clientWidth); // Minimum 320px width
+    const canvasHeight = Math.max(480, this.canvas.clientHeight); // Minimum 480px height
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    let left, right, top, bottom;
+
+    // Detect device type based on aspect ratio and screen size
+    const isMobilePortrait =
+      canvasAspect < 1 || Math.min(canvasWidth, canvasHeight) < 768;
+
+    if (isMobilePortrait) {
+      // Mobile/Portrait: Mobile-first approach
+      // Use a viewport that makes game elements appropriately sized for mobile
+      const baseViewportHeight = 800; // Optimized for mobile gameplay
+      const height = baseViewportHeight / 2;
+      top = height;
+      bottom = -height;
+      const width = height * canvasAspect;
+      left = -width;
+      right = width;
+    } else {
+      // Desktop/Landscape: Scale appropriately for larger screens
+      const isTablet = canvasAspect > 1 && canvasAspect < 1.5; // Tablet landscape
+
+      if (isTablet) {
+        // Tablet landscape: Use medium scaling
+        const baseViewportWidth = 1100;
+        const width = baseViewportWidth / 2;
+        left = -width;
+        right = width;
+        const height = width / canvasAspect;
+        top = height;
+        bottom = -height;
+      } else {
+        // Desktop: Use original game dimensions or scale up for very large screens
+        const minViewportWidth = 1280;
+        const scaleFactor = Math.max(1, Math.min(1.3, canvasWidth / 1280));
+        const viewportWidth = minViewportWidth * scaleFactor;
+
+        const width = viewportWidth / 2;
+        const height = viewportWidth / canvasAspect / 2;
+
+        left = -width;
+        right = width;
+        top = height;
+        bottom = -height;
+      }
+    }
+
+    if (this.camera) {
+      this.camera.left = left;
+      this.camera.right = right;
+      this.camera.top = top;
+      this.camera.bottom = bottom;
+      this.camera.updateProjectionMatrix();
+    } else {
+      this.camera = new THREE.OrthographicCamera(
+        left,
+        right,
+        top,
+        bottom,
+        0.1,
+        5000 // near, far - increased for skybox visibility
+      );
+    }
   }
 
   /**
@@ -87,6 +149,9 @@ export class GameEngine {
 
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Update camera projection to maintain proper aspect ratio
+    this.updateCameraProjection();
   }
 
   /**
@@ -176,15 +241,21 @@ export class GameEngine {
 
   /**
    * Get world bounds for positioning objects
+   * Returns dynamic bounds based on current camera projection
    */
   public getWorldBounds() {
+    const left = this.camera.left;
+    const right = this.camera.right;
+    const top = this.camera.top;
+    const bottom = this.camera.bottom;
+
     return {
-      left: -this.WORLD_WIDTH / 2,
-      right: this.WORLD_WIDTH / 2,
-      top: this.WORLD_HEIGHT / 2,
-      bottom: -this.WORLD_HEIGHT / 2,
-      width: this.WORLD_WIDTH,
-      height: this.WORLD_HEIGHT,
+      left,
+      right,
+      top,
+      bottom,
+      width: right - left,
+      height: top - bottom,
     };
   }
 
