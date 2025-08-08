@@ -132,64 +132,8 @@ export class AsteroidBlast extends GameEngine {
    * Setup mobile UI elements and detection
    */
   private setupMobileUI(): void {
-    const touchLeft = document.getElementById("touchLeft");
-    const touchRight = document.getElementById("touchRight");
-
-    // Add touch feedback visual effects
-    if (touchLeft && touchRight) {
-      const canvas = this.getRenderer().domElement;
-
-      canvas.addEventListener(
-        "touchstart",
-        this.handleTouchFeedback.bind(this)
-      );
-      canvas.addEventListener("touchmove", this.handleTouchFeedback.bind(this));
-      canvas.addEventListener("touchend", this.clearTouchFeedback.bind(this));
-      canvas.addEventListener(
-        "touchcancel",
-        this.clearTouchFeedback.bind(this)
-      );
-    }
-  }
-
-  /**
-   * Handle touch feedback visual effects
-   */
-  private handleTouchFeedback(event: TouchEvent): void {
-    event.preventDefault();
-
-    const canvas = this.getRenderer().domElement;
-    const rect = canvas.getBoundingClientRect();
-    const touchLeft = document.getElementById("touchLeft");
-    const touchRight = document.getElementById("touchRight");
-
-    if (event.touches.length > 0 && touchLeft && touchRight) {
-      const touch = event.touches[0];
-      const x = touch.clientX - rect.left;
-      const centerX = rect.width / 2;
-
-      // Clear previous feedback
-      touchLeft.classList.remove("active");
-      touchRight.classList.remove("active");
-
-      // Add feedback based on touch position
-      if (x < centerX) {
-        touchLeft.classList.add("active");
-      } else {
-        touchRight.classList.add("active");
-      }
-    }
-  }
-
-  /**
-   * Clear touch feedback visual effects
-   */
-  private clearTouchFeedback(): void {
-    const touchLeft = document.getElementById("touchLeft");
-    const touchRight = document.getElementById("touchRight");
-
-    if (touchLeft) touchLeft.classList.remove("active");
-    if (touchRight) touchRight.classList.remove("active");
+    // Mobile UI setup - removed touch feedback areas as movement is drag-based
+    console.log("📱 Mobile UI configured for drag-based movement");
   }
 
   /**
@@ -232,7 +176,7 @@ export class AsteroidBlast extends GameEngine {
         this.sounds.get("backgroundMusic" as SoundType) || null;
       if (this.backgroundMusic) {
         this.backgroundMusic.setLoop(true);
-        this.backgroundMusic.setVolume(0.3); // Lower volume for ambient
+        this.backgroundMusic.setVolume(0); // Muted background music
       }
 
       console.log("🔊 Audio system initialized successfully!");
@@ -365,7 +309,7 @@ export class AsteroidBlast extends GameEngine {
       if (bgMusic) {
         this.backgroundMusic = bgMusic;
         this.backgroundMusic.setLoop(true);
-        this.backgroundMusic.setVolume(0.7); // Set volume to 70%
+        this.backgroundMusic.setVolume(0); // Muted background music
         this.sounds.set("backgroundMusic" as SoundType, this.backgroundMusic);
 
         // Try to play it immediately
@@ -1508,70 +1452,9 @@ export class AsteroidBlast extends GameEngine {
   public restartGame(): void {
     console.log("🔄 Restarting Asteroid Blast...");
 
-    // Reset game state
-    this.score = 0;
-    this.asteroidsDestroyed = 0;
-    this.difficultyLevel = 1;
-    this.gameStartTime = performance.now();
-    this.lastAsteroidSpawn = 0;
-    this.lastPowerUpSpawn = 0;
-    this.asteroidSpawnRate = 1500;
-    this.powerUpSpawnRate = 8000;
-
-    // Reset power-ups
-    this.activePowerUps = {
-      rapidFire: 0,
-      shield: 0,
-      damage: 0,
-    };
-
-    // Clear all entities
-    this.clearAllEntities();
-
-    // Reinitialize spaceship
-    const worldBounds = this.getWorldBounds();
-    this.spaceship = new Spaceship(worldBounds);
-    this.addToScene(this.spaceship.getMesh());
-
-    // Reset HUD
-    this.hudManager.resetHUD();
-
-    // Update initial HUD state
-    this.updateHUD();
-
-    // Restart background music
-    this.startBackgroundMusic();
-
-    // Reactivate the game
-    this.isInitialized = true;
-
-    console.log("🎮 Game restarted successfully!");
-  }
-
-  /**
-   * Clear all entities from the scene and arrays
-   */
-  private clearAllEntities(): void {
-    // Clear asteroids
-    for (const asteroid of this.asteroids) {
-      this.removeFromScene(asteroid.getMesh());
-      asteroid.dispose();
-    }
-    this.asteroids.length = 0;
-
-    // Clear projectiles
-    for (const projectile of this.projectiles) {
-      this.removeFromScene(projectile.getMesh());
-      projectile.dispose();
-    }
-    this.projectiles.length = 0;
-
-    // Clear power-ups
-    for (const powerUp of this.powerUps) {
-      this.removeFromScene(powerUp.getMesh());
-      powerUp.dispose();
-    }
-    this.powerUps.length = 0;
+    // Simple full page reload to ensure clean state
+    // This prevents any potential issues with spaceship duplication or state management
+    window.location.reload();
   }
 
   /**
