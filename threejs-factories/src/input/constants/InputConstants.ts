@@ -16,6 +16,14 @@ export const INPUT_MANAGER_DEFAULTS: Required<
   stopPropagation: false,
   trackMouseLeave: true,
   normalizeMouseCoords: true,
+  enableTouch: true,
+  enableGestures: true,
+  tapTimeout: 300,
+  doubleTapTimeout: 300,
+  longPressTimeout: 500,
+  swipeThreshold: 50,
+  pinchThreshold: 0.1,
+  preventTouchDefaults: true,
 };
 
 // === MOUSE SENSITIVITY PRESETS ===
@@ -283,6 +291,47 @@ export function getKeyMapping(
 ): readonly string[] {
   return COMMON_KEY_MAPPINGS[action];
 }
+
+// === TOUCH GESTURE CONSTANTS ===
+export const TOUCH_GESTURE_DEFAULTS = {
+  /** Default tap timeout in milliseconds */
+  TAP_TIMEOUT: 300,
+  /** Default double tap timeout in milliseconds */
+  DOUBLE_TAP_TIMEOUT: 300,
+  /** Default long press timeout in milliseconds */
+  LONG_PRESS_TIMEOUT: 500,
+  /** Default swipe threshold in pixels */
+  SWIPE_THRESHOLD: 50,
+  /** Default pinch threshold for scale detection */
+  PINCH_THRESHOLD: 0.1,
+  /** Maximum tap distance tolerance in pixels */
+  MAX_TAP_DISTANCE: 10,
+  /** Minimum swipe velocity in pixels/second */
+  MIN_SWIPE_VELOCITY: 100,
+} as const;
+
+// === TOUCH EVENT THROTTLING ===
+export const TOUCH_EVENT_THROTTLING = {
+  /** Touch move event throttle in milliseconds */
+  TOUCH_MOVE_THROTTLE_MS: 16, // ~60fps
+  /** Gesture recognition throttle in milliseconds */
+  GESTURE_THROTTLE_MS: 33, // ~30fps
+} as const;
+
+// === SWIPE DIRECTIONS ===
+export const SWIPE_DIRECTIONS = {
+  UP: "up",
+  DOWN: "down",
+  LEFT: "left",
+  RIGHT: "right",
+  UP_LEFT: "up-left",
+  UP_RIGHT: "up-right",
+  DOWN_LEFT: "down-left",
+  DOWN_RIGHT: "down-right",
+} as const;
+
+export type SwipeDirection =
+  (typeof SWIPE_DIRECTIONS)[keyof typeof SWIPE_DIRECTIONS];
 
 /**
  * Check if browser supports a specific input feature

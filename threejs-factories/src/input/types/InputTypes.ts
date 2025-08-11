@@ -149,6 +149,37 @@ export interface TouchState {
 }
 
 /**
+ * Touch gesture types
+ */
+export const TouchGestureType = {
+  TAP: "tap",
+  DOUBLE_TAP: "doubleTap",
+  LONG_PRESS: "longPress",
+  SWIPE: "swipe",
+  PINCH: "pinch",
+  DRAG: "drag",
+} as const;
+
+export type TouchGestureType =
+  (typeof TouchGestureType)[keyof typeof TouchGestureType];
+
+/**
+ * Touch gesture data
+ */
+export interface TouchGesture {
+  type: TouchGestureType;
+  startPosition: MousePosition;
+  currentPosition: MousePosition;
+  deltaPosition: { x: number; y: number };
+  distance?: number;
+  direction?: string;
+  scale?: number;
+  rotation?: number;
+  duration: number;
+  touchCount: number;
+}
+
+/**
  * Input event callbacks
  */
 export interface InputEventCallbacks {
@@ -169,6 +200,20 @@ export interface InputEventCallbacks {
     delta: { deltaX: number; deltaY: number; deltaZ: number },
     event: WheelEvent
   ) => void;
+
+  // Touch event callbacks
+  onTouchStart?: (touchPoint: TouchPoint, event: TouchEvent) => void;
+  onTouchEnd?: (touchPoint: TouchPoint, event: TouchEvent) => void;
+  onTouchMove?: (touchPoint: TouchPoint, event: TouchEvent) => void;
+  onTouchCancel?: (touchPoint: TouchPoint, event: TouchEvent) => void;
+
+  // Gesture callbacks
+  onTap?: (gesture: TouchGesture) => void;
+  onDoubleTap?: (gesture: TouchGesture) => void;
+  onLongPress?: (gesture: TouchGesture) => void;
+  onSwipe?: (gesture: TouchGesture) => void;
+  onPinch?: (gesture: TouchGesture) => void;
+  onDrag?: (gesture: TouchGesture) => void;
 }
 
 /**
@@ -187,6 +232,24 @@ export interface InputManagerConfig {
   trackMouseLeave?: boolean;
   /** Whether to normalize mouse coordinates */
   normalizeMouseCoords?: boolean;
+
+  // Touch-specific configuration
+  /** Whether to enable touch event handling */
+  enableTouch?: boolean;
+  /** Whether to enable gesture recognition */
+  enableGestures?: boolean;
+  /** Tap detection timeout in milliseconds */
+  tapTimeout?: number;
+  /** Double tap detection timeout in milliseconds */
+  doubleTapTimeout?: number;
+  /** Long press detection timeout in milliseconds */
+  longPressTimeout?: number;
+  /** Minimum swipe distance in pixels */
+  swipeThreshold?: number;
+  /** Minimum pinch scale change to detect gesture */
+  pinchThreshold?: number;
+  /** Whether to prevent touch scroll/zoom on the target element */
+  preventTouchDefaults?: boolean;
 }
 
 /**

@@ -8,6 +8,7 @@ import type {
   KeyboardState,
   MouseState,
   TouchState,
+  TouchPoint,
 } from "../types/InputTypes.js";
 
 import {
@@ -364,5 +365,139 @@ export class InputCore {
    */
   static angle(from: Vector2Like, to: Vector2Like): number {
     return Math.atan2(to.y - from.y, to.x - from.x);
+  }
+
+  // === TOUCH UTILITY METHODS ===
+
+  /**
+   * Get touch position relative to a canvas element
+   */
+  static getTouchCanvasRelativePosition(
+    touch: Touch,
+    canvas: HTMLCanvasElement
+  ): Vector2Like {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    };
+  }
+
+  /**
+   * Create a complete mouse position object from a touch event
+   */
+  static createTouchPosition(
+    touch: Touch,
+    canvas?: HTMLCanvasElement
+  ): MousePosition {
+    const canvasElement = canvas || this.findCanvasElement();
+    const canvasWidth = canvasElement?.width || window.innerWidth;
+    const canvasHeight = canvasElement?.height || window.innerHeight;
+
+    let canvasPos: Vector2Like;
+    if (canvasElement) {
+      canvasPos = this.getTouchCanvasRelativePosition(touch, canvasElement);
+    } else {
+      canvasPos = { x: touch.clientX, y: touch.clientY };
+    }
+
+    const screenPos = { x: touch.screenX, y: touch.screenY };
+    const normalizedPos = this.screenToNormalizedCoordinates(
+      canvasPos.x,
+      canvasPos.y,
+      canvasWidth,
+      canvasHeight
+    );
+
+    return {
+      screen: screenPos,
+      canvas: canvasPos,
+      normalized: normalizedPos,
+    };
+  }
+
+  /**
+   * Calculate distance between two touch points
+   */
+  static getTouchDistance(touch1: Touch, touch2: Touch): number {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  /**
+   * Calculate center point between two touch points
+   */
+  static getTouchCenter(touch1: Touch, touch2: Touch): Vector2Like {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+  }
+
+  /**
+   * Calculate angle between two touch points
+   */
+  static getTouchAngle(touch1: Touch, touch2: Touch): number {
+    return Math.atan2(
+      touch2.clientY - touch1.clientY,
+      touch2.clientX - touch1.clientX
+    );
+  }
+
+  /**
+   * Determine swipe direction from delta
+   */
+  static getSwipeDirection(deltaX: number, deltaY: number): string {
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    // Determine primary direction
+    if (absDeltaX > absDeltaY) {
+      if (absDeltaY < absDeltaX * 0.5) {
+        // Pure horizontal
+        return deltaX > 0 ? "right" : "left";
+      } else {
+        // Diagonal with horizontal bias
+        if (deltaX > 0) {
+          return deltaY > 0 ? "down-right" : "up-right";
+        } else {
+          return deltaY > 0 ? "down-left" : "up-left";
+        }
+      }
+    } else {
+      if (absDeltaX < absDeltaY * 0.5) {
+        // Pure vertical
+        return deltaY > 0 ? "down" : "up";
+      } else {
+        // Diagonal with vertical bias
+        if (deltaY > 0) {
+          return deltaX > 0 ? "down-right" : "down-left";
+        } else {
+          return deltaX > 0 ? "up-right" : "up-left";
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculate velocity from distance and time
+   */
+  static calculateVelocity(distance: number, timeMs: number): number {
+    return timeMs > 0 ? (distance / timeMs) * 1000 : 0; // pixels per second
+  }
+
+  /**
+   * Create a TouchPoint from a Touch object
+   */
+  static createTouchPoint(
+    touch: Touch,
+    canvas?: HTMLCanvasElement
+  ): TouchPoint {
+    return {
+      id: touch.identifier,
+      position: this.createTouchPosition(touch, canvas),
+      force: touch.force,
+    };
   }
 }

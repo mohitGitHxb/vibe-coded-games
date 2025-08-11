@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>📱 Mobile Touch & Gesture Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        overflow: hidden;
+        height: 100vh;
+        touch-action: none;
+      }
+
+      .demo-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .touch-area {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+        cursor: grab;
+      }
+
+      .touch-area:active {
+        cursor: grabbing;
+      }
+
+      .touch-point {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(255, 255, 255, 0.3) 100%
+        );
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        animation: touchPulse 0.5s ease-out;
+        border: 3px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      }
+
+      .touch-point.multi-touch {
+        background: radial-gradient(
+          circle,
+          rgba(255, 165, 0, 0.9) 0%,
+          rgba(255, 165, 0, 0.3) 100%
+        );
+        border-color: rgba(255, 165, 0, 0.8);
+        box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+      }
+
+      .gesture-trail {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: trailFade 1s ease-out forwards;
+      }
+
+      @keyframes touchPulse {
+        0% {
+          transform: translate(-50%, -50%) scale(0.3);
+          opacity: 0;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes trailFade {
+        0% {
+          opacity: 0.8;
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.5);
+        }
+      }
+
+      .controls-panel {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 15px;
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 160px;
+      }
+
+      .gesture-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .info-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .info-card strong {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 5px;
+        color: #fff;
+      }
+
+      .gesture-history {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 10px;
+        max-height: 80px;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .gesture-history h4 {
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #ddd;
+      }
+
+      .gesture-item {
+        font-size: 11px;
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 0;
+        animation: fadeInUp 0.3s ease-out forwards;
+      }
+
+      .gesture-item:last-child {
+        border-bottom: none;
+      }
+
+      .gesture-item.tap {
+        color: #4ecdc4;
+      }
+      .gesture-item.double-tap {
+        color: #45b7d1;
+      }
+      .gesture-item.long-press {
+        color: #f39c12;
+      }
+      .gesture-item.swipe {
+        color: #e74c3c;
+      }
+      .gesture-item.drag {
+        color: #9b59b6;
+      }
+      .gesture-item.pinch {
+        color: #1abc9c;
+      }
+
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .instructions {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        font-size: 14px;
+        line-height: 1.4;
+        z-index: 100;
+        animation: slideDown 0.5s ease-out;
+      }
+
+      .instructions h3 {
+        margin-bottom: 10px;
+        color: #4ecdc4;
+      }
+
+      .instructions ul {
+        list-style-type: none;
+        padding-left: 0;
+      }
+
+      .instructions li {
+        margin-bottom: 5px;
+        padding-left: 20px;
+        position: relative;
+      }
+
+      .instructions li:before {
+        content: "👆";
+        position: absolute;
+        left: 0;
+      }
+
+      @keyframes slideDown {
+        0% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .performance-indicator {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+        z-index: 100;
+      }
+
+      .status-online {
+        color: #2ecc71;
+      }
+      .status-offline {
+        color: #e74c3c;
+      }
+
+      @media (max-width: 768px) {
+        .instructions {
+          font-size: 12px;
+          padding: 12px;
+        }
+
+        .gesture-info {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .controls-panel {
+          padding: 12px;
+          min-height: 140px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <div class="instructions" id="instructions">
+        <h3>📱 Touch & Gesture Controls</h3>
+        <ul>
+          <li><strong>Tap:</strong> Single finger tap</li>
+          <li><strong>Double Tap:</strong> Quick double tap</li>
+          <li><strong>Long Press:</strong> Hold for 500ms</li>
+          <li><strong>Swipe:</strong> Drag and release quickly</li>
+          <li><strong>Drag:</strong> Touch and move</li>
+          <li><strong>Pinch:</strong> Two fingers to zoom</li>
+        </ul>
+      </div>
+
+      <div class="performance-indicator">
+        <span id="touchStatus" class="status-offline">Touch: Inactive</span>
+      </div>
+
+      <div class="touch-area" id="touchArea">
+        <!-- Touch points and trails will be added here -->
+      </div>
+
+      <div class="controls-panel">
+        <div class="gesture-info">
+          <div class="info-card">
+            <strong id="activeCount">0</strong>
+            <span>Active Touches</span>
+          </div>
+          <div class="info-card">
+            <strong id="gestureCount">0</strong>
+            <span>Gestures Detected</span>
+          </div>
+          <div class="info-card">
+            <strong id="lastGesture">None</strong>
+            <span>Last Gesture</span>
+          </div>
+          <div class="info-card">
+            <strong id="touchSupport">Checking...</strong>
+            <span>Touch Support</span>
+          </div>
+        </div>
+
+        <div class="gesture-history">
+          <h4>Gesture History</h4>
+          <div id="gestureList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      class MobileTouchDemo {
+        constructor() {
+          this.touchArea = document.getElementById("touchArea");
+          this.activeTouches = new Map();
+          this.gestureCount = 0;
+          this.lastGestureTime = 0;
+          this.gestureHistory = [];
+
+          // Touch gesture tracking
+          this.longPressTimer = null;
+          this.lastTap = { time: 0, x: 0, y: 0 };
+          this.dragStart = null;
+          this.pinchStart = null;
+
+          // Configuration
+          this.config = {
+            tapTimeout: 300,
+            doubleTapTimeout: 300,
+            longPressTimeout: 500,
+            swipeThreshold: 50,
+            pinchThreshold: 0.1,
+          };
+
+          this.init();
+        }
+
+        init() {
+          this.checkTouchSupport();
+          this.setupEventListeners();
+          this.updateDisplay();
+          this.hideInstructions();
+
+          console.log("📱 Mobile Touch Demo initialized!");
+        }
+
+        checkTouchSupport() {
+          const hasTouch =
+            "ontouchstart" in window || navigator.maxTouchPoints > 0;
+          const touchSupportEl = document.getElementById("touchSupport");
+          touchSupportEl.textContent = hasTouch ? "Yes" : "No";
+          touchSupportEl.style.color = hasTouch ? "#2ecc71" : "#e74c3c";
+
+          if (!hasTouch) {
+            console.warn(
+              "Touch not supported - mouse events will be used as fallback"
+            );
+          }
+        }
+
+        hideInstructions() {
+          setTimeout(() => {
+            const instructions = document.getElementById("instructions");
+            instructions.style.animation = "slideDown 0.5s ease-out reverse";
+            setTimeout(() => {
+              instructions.style.display = "none";
+            }, 500);
+          }, 5000);
+        }
+
+        setupEventListeners() {
+          // Touch Events
+          this.touchArea.addEventListener(
+            "touchstart",
+            (e) => this.handleTouchStart(e),
+            { passive: false }
+          );
+          this.touchArea.addEventListener(
+            "touchmove",
+            (e) => this.handleTouchMove(e),
+            { passive: false }
+          );
+          this.touchArea.addEventListener(
+            "touchend",
+            (e) => this.handleTouchEnd(e),
+            { passive: false }
+          );
+          this.touchArea.addEventListener(
+            "touchcancel",
+            (e) => this.handleTouchCancel(e),
+            { passive: false }
+          );
+
+          // Mouse Events (fallback for non-touch devices)
+          this.touchArea.addEventListener("mousedown", (e) =>
+            this.handleMouseDown(e)
+          );
+          this.touchArea.addEventListener("mousemove", (e) =>
+            this.handleMouseMove(e)
+          );
+          this.touchArea.addEventListener("mouseup", (e) =>
+            this.handleMouseUp(e)
+          );
+          this.touchArea.addEventListener("mouseleave", (e) =>
+            this.handleMouseLeave(e)
+          );
+
+          // Prevent context menu
+          this.touchArea.addEventListener("contextmenu", (e) =>
+            e.preventDefault()
+          );
+
+          // Prevent default touch behaviors
+          document.addEventListener("touchstart", (e) => e.preventDefault(), {
+            passive: false,
+          });
+          document.addEventListener("touchmove", (e) => e.preventDefault(), {
+            passive: false,
+          });
+        }
+
+        // === TOUCH EVENT HANDLERS ===
+
+        handleTouchStart(event) {
+          event.preventDefault();
+
+          for (let i = 0; i < event.changedTouches.length; i++) {
+            const touch = event.changedTouches[i];
+            const touchInfo = {
+              id: touch.identifier,
+              startX: touch.clientX,
+              startY: touch.clientY,
+              currentX: touch.clientX,
+              currentY: touch.clientY,
+              startTime: Date.now(),
+              element: this.createTouchPoint(touch.clientX, touch.clientY),
+            };
+
+            this.activeTouches.set(touch.identifier, touchInfo);
+            this.handleGestureStart(touch, event.touches.length);
+          }
+
+          this.updateDisplay();
+        }
+
+        handleTouchMove(event) {
+          event.preventDefault();
+
+          for (let i = 0; i < event.changedTouches.length; i++) {
+            const touch = event.changedTouches[i];
+            const touchInfo = this.activeTouches.get(touch.identifier);
+
+            if (touchInfo) {
+              touchInfo.currentX = touch.clientX;
+              touchInfo.currentY = touch.clientY;
+
+              this.updateTouchPoint(
+                touchInfo.element,
+                touch.clientX,
+                touch.clientY
+              );
+              this.createTrail(touch.clientX, touch.clientY);
+              this.handleGestureMove(touch, event.touches.length);
+            }
+          }
+
+          this.updateDisplay();
+        }
+
+        handleTouchEnd(event) {
+          event.preventDefault();
+
+          for (let i = 0; i < event.changedTouches.length; i++) {
+            const touch = event.changedTouches[i];
+            const touchInfo = this.activeTouches.get(touch.identifier);
+
+            if (touchInfo) {
+              this.handleGestureEnd(touch, touchInfo, event.touches.length);
+              this.removeTouchPoint(touchInfo.element);
+              this.activeTouches.delete(touch.identifier);
+            }
+          }
+
+          this.updateDisplay();
+        }
+
+        handleTouchCancel(event) {
+          event.preventDefault();
+
+          for (let i = 0; i < event.changedTouches.length; i++) {
+            const touch = event.changedTouches[i];
+            const touchInfo = this.activeTouches.get(touch.identifier);
+
+            if (touchInfo) {
+              this.removeTouchPoint(touchInfo.element);
+              this.activeTouches.delete(touch.identifier);
+            }
+          }
+
+          this.cleanupGestures();
+          this.updateDisplay();
+        }
+
+        // === MOUSE EVENT HANDLERS (Fallback) ===
+
+        handleMouseDown(event) {
+          if (this.activeTouches.size > 0) return; // Ignore if touch is active
+
+          const touchInfo = {
+            id: "mouse",
+            startX: event.clientX,
+            startY: event.clientY,
+            currentX: event.clientX,
+            currentY: event.clientY,
+            startTime: Date.now(),
+            element: this.createTouchPoint(event.clientX, event.clientY),
+          };
+
+          this.activeTouches.set("mouse", touchInfo);
+          this.handleGestureStart(
+            { clientX: event.clientX, clientY: event.clientY },
+            1
+          );
+          this.updateDisplay();
+        }
+
+        handleMouseMove(event) {
+          const touchInfo = this.activeTouches.get("mouse");
+          if (!touchInfo) return;
+
+          touchInfo.currentX = event.clientX;
+          touchInfo.currentY = event.clientY;
+
+          this.updateTouchPoint(
+            touchInfo.element,
+            event.clientX,
+            event.clientY
+          );
+          this.createTrail(event.clientX, event.clientY);
+          this.handleGestureMove(
+            { clientX: event.clientX, clientY: event.clientY },
+            1
+          );
+          this.updateDisplay();
+        }
+
+        handleMouseUp(event) {
+          const touchInfo = this.activeTouches.get("mouse");
+          if (!touchInfo) return;
+
+          this.handleGestureEnd(
+            { clientX: event.clientX, clientY: event.clientY },
+            touchInfo,
+            0
+          );
+          this.removeTouchPoint(touchInfo.element);
+          this.activeTouches.delete("mouse");
+          this.updateDisplay();
+        }
+
+        handleMouseLeave(event) {
+          const touchInfo = this.activeTouches.get("mouse");
+          if (!touchInfo) return;
+
+          this.removeTouchPoint(touchInfo.element);
+          this.activeTouches.delete("mouse");
+          this.cleanupGestures();
+          this.updateDisplay();
+        }
+
+        // === GESTURE DETECTION ===
+
+        handleGestureStart(touch, touchCount) {
+          const now = Date.now();
+
+          // Long press detection
+          this.longPressTimer = setTimeout(() => {
+            this.detectGesture("long-press", {
+              x: touch.clientX,
+              y: touch.clientY,
+              duration: this.config.longPressTimeout,
+            });
+          }, this.config.longPressTimeout);
+
+          // Drag start
+          this.dragStart = {
+            x: touch.clientX,
+            y: touch.clientY,
+            time: now,
+          };
+
+          // Pinch start (multi-touch)
+          if (touchCount === 2 && this.activeTouches.size === 2) {
+            const touches = Array.from(this.activeTouches.values());
+            if (touches.length === 2) {
+              const distance = this.getDistance(
+                touches[0].currentX,
+                touches[0].currentY,
+                touches[1].currentX,
+                touches[1].currentY
+              );
+              this.pinchStart = { distance, scale: 1 };
+            }
+          }
+        }
+
+        handleGestureMove(touch, touchCount) {
+          // Clear long press if moving
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+
+          // Drag detection
+          if (this.dragStart) {
+            const deltaX = touch.clientX - this.dragStart.x;
+            const deltaY = touch.clientY - this.dragStart.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance > 10) {
+              this.detectGesture("drag", {
+                startX: this.dragStart.x,
+                startY: this.dragStart.y,
+                currentX: touch.clientX,
+                currentY: touch.clientY,
+                deltaX,
+                deltaY,
+                distance,
+              });
+            }
+          }
+
+          // Pinch detection
+          if (
+            touchCount === 2 &&
+            this.pinchStart &&
+            this.activeTouches.size === 2
+          ) {
+            const touches = Array.from(this.activeTouches.values());
+            if (touches.length === 2) {
+              const distance = this.getDistance(
+                touches[0].currentX,
+                touches[0].currentY,
+                touches[1].currentX,
+                touches[1].currentY
+              );
+              const scale = distance / this.pinchStart.distance;
+
+              if (
+                Math.abs(scale - this.pinchStart.scale) >
+                this.config.pinchThreshold
+              ) {
+                this.detectGesture("pinch", {
+                  scale,
+                  distance,
+                  center: {
+                    x: (touches[0].currentX + touches[1].currentX) / 2,
+                    y: (touches[0].currentY + touches[1].currentY) / 2,
+                  },
+                });
+                this.pinchStart.scale = scale;
+              }
+            }
+          }
+        }
+
+        handleGestureEnd(touch, touchInfo, remainingTouches) {
+          const now = Date.now();
+
+          // Clear timers
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+
+          // Calculate gesture metrics
+          const deltaX = touch.clientX - touchInfo.startX;
+          const deltaY = touch.clientY - touchInfo.startY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          const duration = now - touchInfo.startTime;
+
+          // Tap detection
+          if (distance < 10 && duration < this.config.tapTimeout) {
+            // Check for double tap
+            if (
+              this.lastTap.time &&
+              now - this.lastTap.time < this.config.doubleTapTimeout &&
+              Math.abs(touch.clientX - this.lastTap.x) < 50 &&
+              Math.abs(touch.clientY - this.lastTap.y) < 50
+            ) {
+              this.detectGesture("double-tap", {
+                x: touch.clientX,
+                y: touch.clientY,
+              });
+              this.lastTap.time = 0; // Reset to prevent triple tap
+            } else {
+              this.detectGesture("tap", {
+                x: touch.clientX,
+                y: touch.clientY,
+              });
+              this.lastTap = {
+                time: now,
+                x: touch.clientX,
+                y: touch.clientY,
+              };
+            }
+          } else if (distance > this.config.swipeThreshold) {
+            // Swipe detection
+            const velocity = (distance / duration) * 1000; // pixels per second
+            const direction = this.getSwipeDirection(deltaX, deltaY);
+
+            this.detectGesture("swipe", {
+              direction,
+              distance,
+              velocity,
+              deltaX,
+              deltaY,
+              duration,
+            });
+          }
+
+          // Clean up gesture state
+          if (remainingTouches === 0) {
+            this.cleanupGestures();
+          }
+        }
+
+        cleanupGestures() {
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+          this.dragStart = null;
+          this.pinchStart = null;
+        }
+
+        // === GESTURE UTILITIES ===
+
+        detectGesture(type, data) {
+          this.gestureCount++;
+          const gesture = {
+            type,
+            data,
+            timestamp: Date.now(),
+            id: this.gestureCount,
+          };
+
+          this.gestureHistory.unshift(gesture);
+          if (this.gestureHistory.length > 20) {
+            this.gestureHistory.pop();
+          }
+
+          this.updateGestureHistory();
+
+          console.log(`🎯 Gesture detected:`, type, data);
+        }
+
+        getDistance(x1, y1, x2, y2) {
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        getSwipeDirection(deltaX, deltaY) {
+          const absDeltaX = Math.abs(deltaX);
+          const absDeltaY = Math.abs(deltaY);
+
+          if (absDeltaX > absDeltaY) {
+            return deltaX > 0 ? "right" : "left";
+          } else {
+            return deltaY > 0 ? "down" : "up";
+          }
+        }
+
+        // === UI MANAGEMENT ===
+
+        createTouchPoint(x, y) {
+          const point = document.createElement("div");
+          point.className = "touch-point";
+          if (this.activeTouches.size > 0) {
+            point.classList.add("multi-touch");
+          }
+          point.style.left = x + "px";
+          point.style.top = y + "px";
+          this.touchArea.appendChild(point);
+          return point;
+        }
+
+        updateTouchPoint(element, x, y) {
+          if (element) {
+            element.style.left = x + "px";
+            element.style.top = y + "px";
+          }
+        }
+
+        removeTouchPoint(element) {
+          if (element && element.parentNode) {
+            element.style.animation = "touchPulse 0.3s ease-out reverse";
+            setTimeout(() => {
+              if (element.parentNode) {
+                element.parentNode.removeChild(element);
+              }
+            }, 300);
+          }
+        }
+
+        createTrail(x, y) {
+          const trail = document.createElement("div");
+          trail.className = "gesture-trail";
+          trail.style.left = x + "px";
+          trail.style.top = y + "px";
+          this.touchArea.appendChild(trail);
+
+          setTimeout(() => {
+            if (trail.parentNode) {
+              trail.parentNode.removeChild(trail);
+            }
+          }, 1000);
+        }
+
+        updateDisplay() {
+          const activeCount = this.activeTouches.size;
+          const lastGesture =
+            this.gestureHistory.length > 0
+              ? this.gestureHistory[0].type
+              : "None";
+
+          document.getElementById("activeCount").textContent = activeCount;
+          document.getElementById("gestureCount").textContent =
+            this.gestureCount;
+          document.getElementById("lastGesture").textContent = lastGesture;
+
+          const touchStatus = document.getElementById("touchStatus");
+          if (activeCount > 0) {
+            touchStatus.textContent = `Touch: ${activeCount} Active`;
+            touchStatus.className = "status-online";
+          } else {
+            touchStatus.textContent = "Touch: Inactive";
+            touchStatus.className = "status-offline";
+          }
+        }
+
+        updateGestureHistory() {
+          const gestureList = document.getElementById("gestureList");
+          gestureList.innerHTML = "";
+
+          this.gestureHistory.slice(0, 5).forEach((gesture, index) => {
+            const item = document.createElement("div");
+            item.className = `gesture-item ${gesture.type}`;
+            item.style.animationDelay = `${index * 0.05}s`;
+
+            let details = "";
+            switch (gesture.type) {
+              case "tap":
+              case "double-tap":
+                details = `at (${Math.round(gesture.data.x)}, ${Math.round(
+                  gesture.data.y
+                )})`;
+                break;
+              case "swipe":
+                details = `${gesture.data.direction} (${Math.round(
+                  gesture.data.distance
+                )}px)`;
+                break;
+              case "pinch":
+                details = `scale: ${gesture.data.scale.toFixed(2)}`;
+                break;
+              case "long-press":
+                details = `${gesture.data.duration}ms`;
+                break;
+              case "drag":
+                details = `${Math.round(gesture.data.distance)}px`;
+                break;
+            }
+
+            item.textContent = `${gesture.type.replace("-", " ")} ${details}`;
+            gestureList.appendChild(item);
+          });
+        }
+      }
+
+      // Initialize demo when page loads
+      if (document.readyState === "loading") {
+        document.addEventListener(
+          "DOMContentLoaded",
+          () => new MobileTouchDemo()
+        );
+      } else {
+        new MobileTouchDemo();
+      }
+    </script>
+  </body>
+</html>
