@@ -87,6 +87,7 @@ export class AsteroidBlast extends GameEngine {
     this.setupInputHandlers();
     this.setupMobileUI();
     this.setupGameEventListeners();
+    this.setupFullscreenControls();
     this.setupAudioSystem();
     this.init();
   }
@@ -144,6 +145,154 @@ export class AsteroidBlast extends GameEngine {
     window.addEventListener("gameRestart", () => {
       this.restartGame();
     });
+  }
+
+  /**
+   * Setup fullscreen controls for mobile devices
+   */
+  private setupFullscreenControls(): void {
+    // Check if we're on a mobile device
+    const isMobile = this.isMobileDevice();
+
+    if (isMobile) {
+      // Show the fullscreen button on mobile
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+      if (fullscreenBtn) {
+        fullscreenBtn.style.display = "block";
+        fullscreenBtn.addEventListener("click", () => this.toggleFullscreen());
+      }
+
+      // Auto-request fullscreen on first user interaction (after a short delay)
+      const autoFullscreen = () => {
+        setTimeout(() => {
+          this.requestFullscreen();
+        }, 1000); // 1 second delay to let game load
+
+        // Remove the event listener after first use
+        document.removeEventListener("touchstart", autoFullscreen);
+        document.removeEventListener("click", autoFullscreen);
+      };
+
+      // Listen for first user interaction
+      document.addEventListener("touchstart", autoFullscreen, { once: true });
+      document.addEventListener("click", autoFullscreen, { once: true });
+
+      console.log("📱 Mobile fullscreen controls initialized");
+    }
+
+    // Listen for fullscreen changes to update button state
+    document.addEventListener("fullscreenchange", () =>
+      this.updateFullscreenButton()
+    );
+    document.addEventListener("webkitfullscreenchange", () =>
+      this.updateFullscreenButton()
+    );
+    document.addEventListener("mozfullscreenchange", () =>
+      this.updateFullscreenButton()
+    );
+    document.addEventListener("MSFullscreenChange", () =>
+      this.updateFullscreenButton()
+    );
+  }
+
+  /**
+   * Check if the device is mobile
+   */
+  private isMobileDevice(): boolean {
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+      window.innerWidth <= 768
+    );
+  }
+
+  /**
+   * Request fullscreen mode
+   */
+  private requestFullscreen(): void {
+    const element = document.getElementById("app");
+    if (!element) return;
+
+    try {
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if ((element as any).webkitRequestFullscreen) {
+        (element as any).webkitRequestFullscreen();
+      } else if ((element as any).mozRequestFullScreen) {
+        (element as any).mozRequestFullScreen();
+      } else if ((element as any).msRequestFullscreen) {
+        (element as any).msRequestFullscreen();
+      }
+
+      console.log("📱 Fullscreen requested");
+    } catch (error) {
+      console.warn("⚠️ Could not request fullscreen:", error);
+    }
+  }
+
+  /**
+   * Exit fullscreen mode
+   */
+  private exitFullscreen(): void {
+    try {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+
+      console.log("📱 Fullscreen exited");
+    } catch (error) {
+      console.warn("⚠️ Could not exit fullscreen:", error);
+    }
+  }
+
+  /**
+   * Toggle fullscreen mode
+   */
+  private toggleFullscreen(): void {
+    if (this.isFullscreen()) {
+      this.exitFullscreen();
+    } else {
+      this.requestFullscreen();
+    }
+  }
+
+  /**
+   * Check if currently in fullscreen
+   */
+  private isFullscreen(): boolean {
+    return !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+  }
+
+  /**
+   * Update fullscreen button appearance
+   */
+  private updateFullscreenButton(): void {
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    if (!fullscreenBtn) return;
+
+    const fullscreenIcon = fullscreenBtn.querySelector(".fullscreen-icon");
+    if (!fullscreenIcon) return;
+
+    if (this.isFullscreen()) {
+      fullscreenIcon.textContent = "⛶"; // Exit fullscreen icon
+      fullscreenBtn.title = "Exit Fullscreen";
+    } else {
+      fullscreenIcon.textContent = "⛶"; // Enter fullscreen icon
+      fullscreenBtn.title = "Enter Fullscreen";
+    }
   }
 
   /**

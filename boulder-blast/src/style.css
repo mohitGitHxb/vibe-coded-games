@@ -564,6 +564,37 @@ canvas {
   }
 }
 
+/* Fullscreen toggle button */
+.fullscreen-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fullscreen-btn:hover {
+  background: rgba(0, 162, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.95);
+  background: rgba(0, 120, 200, 0.9);
+}
+
+.fullscreen-icon {
+  display: block;
+  font-weight: bold;
+}
+
 /* Ensure smooth gameplay on mobile */
 @media (max-device-width: 768px) {
   canvas {
@@ -584,6 +615,68 @@ canvas {
     font-size: 14px;
     padding: 8px 12px;
     margin: 4px;
+  }
+
+  /* Show fullscreen button on mobile */
+  .fullscreen-btn {
+    display: block !important;
+  }
+
+  /* Fullscreen mode specific styles */
+  #app:fullscreen,
+  #app:-webkit-full-screen,
+  #app:-moz-full-screen,
+  #app:-ms-fullscreen {
+    background: #000;
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 999999 !important;
+  }
+
+  /* Ensure canvas takes full space in fullscreen */
+  #app:fullscreen canvas,
+  #app:-webkit-full-screen canvas,
+  #app:-moz-full-screen canvas,
+  #app:-ms-fullscreen canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  /* Handle safe areas for phones with notches */
+  @supports (padding: max(0px)) {
+    #app {
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+
+    /* Remove padding in fullscreen to use full space */
+    #app:fullscreen,
+    #app:-webkit-full-screen,
+    #app:-moz-full-screen,
+    #app:-ms-fullscreen {
+      padding: 0 !important;
+    }
+  }
+
+  /* Landscape orientation optimization */
+  @media (max-device-width: 768px) and (orientation: landscape) {
+    .hud-top,
+    .hud-bottom {
+      padding: 8px 16px;
+    }
+
+    .stat-item {
+      font-size: 12px;
+    }
+
+    .health-container {
+      scale: 0.9;
+    }
   }
 }
 
