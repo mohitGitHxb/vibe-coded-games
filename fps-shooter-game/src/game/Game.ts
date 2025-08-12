@@ -206,7 +206,7 @@ export class Game {
 
     this.update(deltaTime);
     this.updateUI();
-    this.updateAudio(deltaTime);
+    this.updateAudio();
 
     this.animationId = requestAnimationFrame(() => this.gameLoop());
   }
@@ -261,7 +261,7 @@ export class Game {
     }
   }
 
-  private updateAudio(deltaTime: number): void {
+  private updateAudio(): void {
     // Play footstep sounds when moving
     const input = this.player.getInput();
     const movementVector = input.getMovementVector();

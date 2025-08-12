@@ -53,9 +53,10 @@ export class Weapon {
 
     // Debug: Log model structure
     console.log("🔫 Weapon model children:", this.weaponModel.children.length);
-    this.weaponModel.traverse((child, index) => {
+    let childIndex = 0;
+    this.weaponModel.traverse((child) => {
       console.log(
-        `Child ${index}:`,
+        `Child ${childIndex}:`,
         child.name || child.type,
         child instanceof THREE.Mesh ? "MESH" : "GROUP"
       );
@@ -64,6 +65,7 @@ export class Weapon {
         console.log(`  - Material:`, child.material);
         console.log(`  - Visible:`, child.visible);
       }
+      childIndex++;
     });
 
     // Calculate model bounds
@@ -174,6 +176,8 @@ export class Weapon {
     if (!this.weaponModel) return;
 
     console.log("🎯 Positioning weapon for first-person view");
+    console.log("📐 Original size:", size);
+    console.log("📐 Original center:", center);
 
     // Reset transform
     this.weaponModel.position.set(0, 0, 0);
@@ -183,33 +187,48 @@ export class Weapon {
     // Center the model
     this.weaponModel.position.sub(center);
 
-    // Scale based on size (make it reasonable for FPS view)
+    // Scale appropriately for FPS view - assault rifles are typically long
     const maxSize = Math.max(size.x, size.y, size.z);
-    let scale = 1.0;
-    if (maxSize > 2) {
-      scale = 2.0 / maxSize; // Scale down large models
-    } else if (maxSize < 0.5) {
-      scale = 0.5 / maxSize; // Scale up tiny models
+    let scale = 0.6; // Start with smaller scale for better FPS view
+    if (maxSize > 3) {
+      scale = 1.2 / maxSize; // Scale down very large models
+    } else if (maxSize < 0.3) {
+      scale = 0.3 / maxSize; // Scale up very tiny models
     }
 
     console.log(`🔍 Model max size: ${maxSize}, applying scale: ${scale}`);
     this.weaponModel.scale.setScalar(scale);
 
-    // Position for right-handed weapon hold
+    // Position for right-handed weapon hold - adjusted for assault rifle
     this.weaponModel.position.set(
-      0.3, // Right side of screen
-      -0.2, // Slightly below center
-      -0.8 // Forward from camera
+      0.35, // Right side (X) - moved slightly further right
+      -0.3, // Down from center (Y) - moved down more
+      -0.9 // Forward from camera (Z) - moved closer to camera
     );
 
-    // Rotate to face forward (adjust based on model orientation)
+    // Try multiple rotations to find the correct orientation for assault rifle
+    // Common orientations for GLTF assault rifle models:
+    const rotationOptions = [
+      { x: 0, y: 0, z: 0 }, // No rotation (original)
+      { x: 0, y: Math.PI, z: 0 }, // 180° Y rotation (turn around)
+      { x: 0, y: Math.PI / 2, z: 0 }, // 90° Y rotation (turn right)
+      { x: 0, y: -Math.PI / 2, z: 0 }, // -90° Y rotation (turn left)
+      { x: Math.PI / 2, y: 0, z: 0 }, // 90° X rotation (pitch up)
+      { x: -Math.PI / 2, y: 0, z: 0 }, // -90° X rotation (pitch down)
+      { x: 0, y: Math.PI, z: Math.PI }, // 180° Y and Z rotation
+    ];
+
+    // Try different rotation - you can change this index (0-6) to test different orientations
+    const selectedRotation = rotationOptions[1]; // Start with 180° Y rotation
     this.weaponModel.rotation.set(
-      0, // No pitch
-      Math.PI, // Turn around to face forward
-      0 // No roll
+      selectedRotation.x,
+      selectedRotation.y,
+      selectedRotation.z
     );
 
     console.log("🎯 Weapon positioned at:", this.weaponModel.position);
+    console.log("🔄 Weapon rotation:", this.weaponModel.rotation);
+    console.log("📏 Weapon scale:", this.weaponModel.scale);
   }
 
   private attachMuzzleFlash(): void {
@@ -380,5 +399,99 @@ export class Weapon {
 
   public getWeaponModel(): THREE.Group | null {
     return this.weaponModel;
+  }
+
+  // Helper method to quickly test different weapon orientations
+  // Call this from console: weapon.testWeaponOrientation(0-12)
+  public testWeaponOrientation(rotationIndex: number): void {
+    if (!this.weaponModel) {
+      console.log("❌ No weapon model loaded");
+      return;
+    }
+
+    const rotationOptions = [
+      { x: 0, y: 0, z: 0, name: "No rotation (original)" },
+      { x: 0, y: Math.PI, z: 0, name: "180° Y rotation (turn around)" },
+      { x: 0, y: Math.PI / 2, z: 0, name: "90° Y rotation (turn right)" },
+      { x: 0, y: -Math.PI / 2, z: 0, name: "-90° Y rotation (turn left)" },
+      { x: Math.PI / 2, y: 0, z: 0, name: "90° X rotation (pitch up)" },
+      { x: -Math.PI / 2, y: 0, z: 0, name: "-90° X rotation (pitch down)" },
+      { x: 0, y: Math.PI, z: Math.PI, name: "180° Y and Z rotation" },
+      { x: 0, y: 0, z: Math.PI / 2, name: "90° Z rotation (roll right)" },
+      { x: 0, y: 0, z: -Math.PI / 2, name: "-90° Z rotation (roll left)" },
+      { x: Math.PI / 4, y: Math.PI / 4, z: 0, name: "45° X and Y (diagonal up-right)" },
+      { x: -Math.PI / 4, y: Math.PI / 4, z: 0, name: "-45° X, 45° Y (diagonal down-right)" },
+      { x: 0, y: Math.PI / 4, z: Math.PI / 4, name: "45° Y and Z (turn and roll)" },
+      { x: Math.PI / 6, y: Math.PI, z: 0, name: "30° X, 180° Y (slight tilt, turn around)" },
+    ];
+
+    if (rotationIndex < 0 || rotationIndex >= rotationOptions.length) {
+      console.log(
+        `❌ Invalid rotation index. Use 0-${rotationOptions.length - 1}`
+      );
+      console.log("Available rotations:");
+      rotationOptions.forEach((rot, i) => {
+        console.log(`${i}: ${rot.name}`);
+      });
+      return;
+    }
+
+    const selectedRotation = rotationOptions[rotationIndex];
+    this.weaponModel.rotation.set(
+      selectedRotation.x,
+      selectedRotation.y,
+      selectedRotation.z
+    );
+
+    console.log(
+      `🔄 Applied rotation ${rotationIndex}: ${selectedRotation.name}`
+    );
+    console.log("🔄 New rotation:", this.weaponModel.rotation);
+  }
+
+  // Fine-tune weapon position with small increments
+  public adjustWeaponPosition(axis: 'x' | 'y' | 'z', increment: number): void {
+    if (!this.weaponModel) {
+      console.log("❌ No weapon model loaded");
+      return;
+    }
+
+    this.weaponModel.position[axis] += increment;
+    console.log(`🔧 Adjusted ${axis} by ${increment}, new position:`, this.weaponModel.position);
+  }
+
+  // Fine-tune weapon rotation with small increments
+  public adjustWeaponRotation(axis: 'x' | 'y' | 'z', increment: number): void {
+    if (!this.weaponModel) {
+      console.log("❌ No weapon model loaded");
+      return;
+    }
+
+    this.weaponModel.rotation[axis] += increment * (Math.PI / 180); // Convert degrees to radians
+    console.log(`🔧 Rotated ${axis} by ${increment}°, new rotation (radians):`, this.weaponModel.rotation);
+  }
+
+  // Get current weapon transform values for copying
+  public getWeaponTransform(): { position: THREE.Vector3; rotation: THREE.Euler; scale: THREE.Vector3 } | null {
+    if (!this.weaponModel) return null;
+    
+    return {
+      position: this.weaponModel.position.clone(),
+      rotation: this.weaponModel.rotation.clone(),
+      scale: this.weaponModel.scale.clone()
+    };
+  }
+
+  // Apply specific transform values
+  public setWeaponTransform(position: THREE.Vector3, rotation: THREE.Euler, scale: THREE.Vector3): void {
+    if (!this.weaponModel) {
+      console.log("❌ No weapon model loaded");
+      return;
+    }
+
+    this.weaponModel.position.copy(position);
+    this.weaponModel.rotation.copy(rotation);
+    this.weaponModel.scale.copy(scale);
+    console.log("🔧 Applied custom transform:", { position, rotation, scale });
   }
 }

@@ -243,20 +243,25 @@ export class EnemyManager {
     return { hit: false };
   }
 
-  // Reduced enemy attack damage and frequency
+  // Enemy attack system - damage only when very close
   public checkEnemyAttacks(playerPosition: THREE.Vector3): number {
     let totalDamage = 0;
 
     this.enemies.forEach((enemy) => {
       if (!enemy.isDead()) {
         const distance = enemy.getPosition().distanceTo(playerPosition);
-        if (distance < 12) {
-          // Reduced attack range
-          // Lower chance of damage per frame
-          if (Math.random() < 0.008) {
-            // Reduced from 0.02 to 0.008 (much less frequent)
-            totalDamage += 5; // Reduced damage from 10 to 5
-            console.log(`Player took damage from enemy ${enemy.id}!`);
+        // Enemies must be very close to deal damage (melee range)
+        if (distance < 3.0) {
+          // Much closer range - almost touching
+          // Damage chance per frame when in melee range
+          if (Math.random() < 0.01) {
+            // 1% chance per frame when very close
+            totalDamage += 8; // Moderate damage when they get close
+            console.log(
+              `Player took melee damage from enemy ${
+                enemy.id
+              } at distance ${distance.toFixed(1)}!`
+            );
           }
         }
       }

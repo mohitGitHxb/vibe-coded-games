@@ -31,8 +31,8 @@ importers:
         specifier: ~5.8.3
         version: 5.8.3
       vite:
-        specifier: ^7.0.4
-        version: 7.0.6
+        specifier: ^7.1.2
+        version: 7.1.2
 
 packages:
 
@@ -389,8 +389,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  vite@7.0.6:
-    resolution: {integrity: sha512-MHFiOENNBd+Bd9uvc8GEsIzdkn1JxMmEeYX35tI3fv0sJBUTfW5tQsoaOwuY4KhBI09A3dUJ/DXf2yxPVPUceg==}
+  vite@7.1.2:
+    resolution: {integrity: sha512-J0SQBPlQiEXAF7tajiH+rUooJPo0l8KQgyg4/aMunNtrOa7bwuZJsJbDWzeljqQpgftxuq5yNJxQ91O9ts29UQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -692,7 +692,7 @@ snapshots:
 
   typescript@5.8.3: {}
 
-  vite@7.0.6:
+  vite@7.1.2:
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)

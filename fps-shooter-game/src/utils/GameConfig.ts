@@ -5,7 +5,7 @@ export const GAME_CONFIG = {
 
   // Player settings
   PLAYER_HEALTH: 100,
-  PLAYER_SPEED: 150,
+  PLAYER_SPEED: 300, // Increased from 150 to 300 for faster movement
   PLAYER_HEIGHT: 1.8,
 
   // Weapon settings
@@ -21,7 +21,7 @@ export const GAME_CONFIG = {
   // Enemy settings
   ENEMY: {
     HEALTH: 100,
-    SPEED: 120,
+    SPEED: 180, // Increased from 120 to 180 for faster enemy movement
     DAMAGE: 25,
     ACCURACY: 0.6,
     FIRE_RATE: 1500, // milliseconds between shots

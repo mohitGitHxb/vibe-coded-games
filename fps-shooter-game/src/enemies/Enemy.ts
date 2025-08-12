@@ -7,7 +7,7 @@ import type { PathfindingGrid } from "../utils/PathFinding.js"; // Fixed import 
 export class Enemy {
   public id: string;
   public position: THREE.Vector3;
-  public physicsBody: CANNON.Body;
+  public physicsBody!: CANNON.Body;
   public mesh: THREE.Group;
   private health: number;
   private maxHealth: number;
@@ -110,9 +110,9 @@ export class Enemy {
     this.physicsBody.fixedRotation = true;
     this.physicsBody.updateMassProperties();
 
-    // Increased damping to slow down movement
-    this.physicsBody.linearDamping = 0.8; // Increased from 0.4
-    this.physicsBody.angularDamping = 0.8; // Increased from 0.4
+    // Reduced damping for faster, more responsive movement
+    this.physicsBody.linearDamping = 0.4; // Reduced back to 0.4 for faster movement
+    this.physicsBody.angularDamping = 0.4; // Reduced back to 0.4 for faster turning
   }
 
   public update(
@@ -124,15 +124,15 @@ export class Enemy {
 
     const distanceToPlayer = this.position.distanceTo(playerPosition);
 
-    // State machine
-    if (distanceToPlayer < 12) {
-      this.state = "attacking";
+    // State machine - more aggressive pursuit
+    if (distanceToPlayer < 5) {
+      this.state = "attacking"; // Very close - attack mode
       this.target = playerPosition.clone();
-    } else if (distanceToPlayer < 30) {
-      this.state = "moving";
+    } else if (distanceToPlayer < 35) {
+      this.state = "moving"; // Medium distance - move toward player
       this.target = playerPosition.clone();
     } else {
-      this.state = "idle";
+      this.state = "idle"; // Far away - wander around
       this.target = null;
     }
 
@@ -163,8 +163,8 @@ export class Enemy {
   private updatePathToTarget(targetPosition: THREE.Vector3): void {
     const now = Date.now();
 
-    // Update path every 1000ms (slower updates) or if no current path
-    if (now - this.lastPathUpdate > 1000 || this.currentPath.length === 0) {
+    // Update path every 500ms (faster updates) or if no current path
+    if (now - this.lastPathUpdate > 500 || this.currentPath.length === 0) {
       this.currentPath = this.pathfinding.findPath(
         this.position,
         targetPosition
@@ -202,10 +202,10 @@ export class Enemy {
       return;
     }
 
-    // Apply movement force towards waypoint - REDUCED FORCES
+    // Apply movement force towards waypoint - INCREASED FORCES FOR FASTER MOVEMENT
     direction.normalize();
-    const speed = GAME_CONFIG.ENEMY.SPEED * 0.3; // Reduced to 30% of config speed
-    const forceMultiplier = this.state === "attacking" ? 250 : 200; // Much lower force
+    const speed = GAME_CONFIG.ENEMY.SPEED * 0.8; // Increased from 0.3 to 0.8 for much faster speed
+    const forceMultiplier = this.state === "attacking" ? 400 : 350; // Increased forces for faster movement
 
     const forceX = direction.x * speed * forceMultiplier;
     const forceZ = direction.z * speed * forceMultiplier;
@@ -217,8 +217,8 @@ export class Enemy {
     const angle = Math.atan2(direction.x, direction.z);
     this.mesh.rotation.y = angle;
 
-    // Lower velocity limits for slower movement
-    const maxVel = this.state === "attacking" ? 1.5 : 1.0; // Much slower max velocity
+    // Higher velocity limits for faster movement
+    const maxVel = this.state === "attacking" ? 4.0 : 3.0; // Much higher max velocity
     if (Math.abs(this.physicsBody.velocity.x) > maxVel) {
       this.physicsBody.velocity.x =
         Math.sign(this.physicsBody.velocity.x) * maxVel;
@@ -238,9 +238,9 @@ export class Enemy {
       this.lastDirectionChange = now;
     }
 
-    // Move in current direction - MUCH SLOWER
-    const speed = GAME_CONFIG.ENEMY.SPEED * 0.15; // Only 15% speed when wandering
-    const forceMultiplier = 150; // Much lower force
+    // Move in current direction - FASTER WANDERING
+    const speed = GAME_CONFIG.ENEMY.SPEED * 0.4; // Increased from 0.15 to 0.4 for faster wandering
+    const forceMultiplier = 250; // Increased force for faster wandering
 
     const forceX = this.moveDirection.x * speed * forceMultiplier;
     const forceZ = this.moveDirection.z * speed * forceMultiplier;
@@ -248,8 +248,8 @@ export class Enemy {
     this.physicsBody.force.x += forceX;
     this.physicsBody.force.z += forceZ;
 
-    // Very low velocity limit for wandering
-    const maxVel = 0.8; // Very slow wandering speed
+    // Higher velocity limit for wandering
+    const maxVel = 2.0; // Increased from 0.8 to 2.0 for faster wandering
     if (Math.abs(this.physicsBody.velocity.x) > maxVel) {
       this.physicsBody.velocity.x =
         Math.sign(this.physicsBody.velocity.x) * maxVel;

@@ -86,9 +86,9 @@ export class Player {
     const movementInput = this.input.getMovementVector();
 
     if (movementInput.x === 0 && movementInput.z === 0) {
-      // Apply friction when not moving
-      this.physicsBody.velocity.x *= 0.8;
-      this.physicsBody.velocity.z *= 0.8;
+      // Apply stronger friction when not moving for more responsive stop
+      this.physicsBody.velocity.x *= 0.6;
+      this.physicsBody.velocity.z *= 0.6;
       return;
     }
 
@@ -111,18 +111,18 @@ export class Player {
 
     const moveDirection = forward.add(right).normalize();
 
-    // Apply movement force
+    // Apply stronger movement force for more responsive movement
     const force = new CANNON.Vec3(
-      moveDirection.x * moveSpeed * 100,
+      moveDirection.x * moveSpeed * 200, // Increased from 100 to 200
       0,
-      moveDirection.z * moveSpeed * 100
+      moveDirection.z * moveSpeed * 200 // Increased from 100 to 200
     );
 
     this.physicsBody.force.x += force.x;
     this.physicsBody.force.z += force.z;
 
-    // Limit maximum horizontal velocity
-    const maxVelocity = GAME_CONFIG.PLAYER_SPEED / 60; // Convert to per-frame
+    // Increased maximum velocity for faster movement
+    const maxVelocity = GAME_CONFIG.PLAYER_SPEED / 30; // Changed from 60 to 30 for higher max velocity
     const horizontalVel = Math.sqrt(
       this.physicsBody.velocity.x ** 2 + this.physicsBody.velocity.z ** 2
     );
