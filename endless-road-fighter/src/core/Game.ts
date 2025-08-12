@@ -230,36 +230,7 @@ export class Game {
 
   private restartGame(): void {
     console.log("Restarting game...");
-
-    // Reset game state
-    this.initializeGameState();
-
-    // Reset player position
-    this.player.transform.position.set(0, 0.25, 0);
-    this.player.setSpeed(GAME_CONFIG.STARTING_SPEED);
-
-    // Clear traffic
-    this.trafficSystem.dispose();
-    this.trafficSystem = new TrafficSystem();
-    this.trafficSystem.setScene(this.scene);
-
-    // Clear power-ups
-    this.powerUpSystem.dispose();
-    this.powerUpSystem = new PowerUpSystem();
-    this.powerUpSystem.setScene(this.scene);
-    // Clear environment
-    this.environment.dispose();
-    this.environment = new Environment();
-    this.environment.setScene(this.scene);
-
-    // Clear particles
-    this.particleSystem.dispose();
-    this.particleSystem = new ParticleSystem(this.scene);
-
-    // Start game
-    this.gameState.isPlaying = true;
-
-    console.log("Game restarted successfully!");
+    window.location.reload();
   }
 
   public start(): void {

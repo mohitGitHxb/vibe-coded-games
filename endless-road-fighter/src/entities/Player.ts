@@ -78,11 +78,12 @@ export class Player {
     this.physics.velocity.x = 0;
 
     // Handle steering input with IMMEDIATE response (scaled for wider lanes)
+    // Flip left/right controls to match camera perspective
     if (inputState.left) {
-      this.physics.velocity.x = -this.physics.steeringSpeed;
+      this.physics.velocity.x = this.physics.steeringSpeed; // Flipped: left input moves right
     }
     if (inputState.right) {
-      this.physics.velocity.x = this.physics.steeringSpeed;
+      this.physics.velocity.x = -this.physics.steeringSpeed; // Flipped: right input moves left
     }
 
     // No damping needed - immediate stop when no input (Road Fighter style)
