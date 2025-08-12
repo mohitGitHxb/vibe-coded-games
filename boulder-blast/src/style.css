@@ -16,6 +16,24 @@ body {
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
+  /* iOS-specific fixes */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* iOS Safari address bar handling */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* Ensure full height on iOS Safari */
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  #app {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
 }
 
 #app {
@@ -31,6 +49,27 @@ canvas {
   image-rendering: pixelated; /* For crisp pixel art sprites */
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  background-color: #000811; /* Explicit background for iOS */
+  /* iOS-specific fixes to prevent white patches */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+/* iOS-specific canvas fixes */
+@supports (-webkit-touch-callout: none) {
+  canvas {
+    /* iOS Safari specific rendering optimizations */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+  }
 }
 
 /* Loading indicator (for future use) */

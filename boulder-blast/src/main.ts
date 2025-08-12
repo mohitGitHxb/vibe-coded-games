@@ -8,6 +8,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!canvas) {
     canvas = document.createElement("canvas");
+
+    // iOS-specific canvas configuration to prevent white patches
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+    if (isIOS) {
+      // Explicit canvas styling for iOS
+      canvas.style.backgroundColor = "#000811";
+      canvas.style.display = "block";
+      canvas.style.touchAction = "none";
+      (canvas.style as any).webkitTouchCallout = "none";
+    }
+
     const app = document.querySelector("#app");
     if (app) {
       app.appendChild(canvas);

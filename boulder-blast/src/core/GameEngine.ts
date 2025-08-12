@@ -19,10 +19,56 @@ export class GameEngine {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
+
+    // iOS-specific canvas preparation
+    this.prepareCanvasForIOS();
+
     this.initScene();
     this.initCamera();
     this.initRenderer();
     this.setupResizeHandler();
+
+    // Validate WebGL context on iOS
+    this.validateWebGLContext();
+  }
+
+  /**
+   * Prepare canvas for iOS rendering
+   */
+  private prepareCanvasForIOS(): void {
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+    if (isIOS) {
+      // Force canvas size update to ensure proper initialization
+      const rect = this.canvas.getBoundingClientRect();
+      this.canvas.width = rect.width * window.devicePixelRatio;
+      this.canvas.height = rect.height * window.devicePixelRatio;
+      this.canvas.style.width = rect.width + "px";
+      this.canvas.style.height = rect.height + "px";
+
+      console.log("📱 Canvas prepared for iOS rendering");
+    }
+  }
+
+  /**
+   * Validate WebGL context works properly
+   */
+  private validateWebGLContext(): void {
+    if (!this.renderer || !this.renderer.getContext()) {
+      console.error("❌ WebGL context failed to initialize");
+      return;
+    }
+
+    const gl = this.renderer.getContext();
+    if (gl.getError() !== gl.NO_ERROR) {
+      console.warn("⚠️ WebGL context has errors, attempting recovery");
+      this.renderer.setClearColor(0x000811, 1.0);
+      gl.clearColor(0, 8 / 255, 17 / 255, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+
+    console.log("✅ WebGL context validated successfully");
   }
 
   /**
@@ -30,7 +76,19 @@ export class GameEngine {
    */
   private initScene(): void {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x000811); // Dark space blue
+
+    // iOS-specific background handling
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+    if (isIOS) {
+      // For iOS, use a more explicit color setup to prevent white patches
+      const backgroundColor = new THREE.Color(0x000811);
+      backgroundColor.convertSRGBToLinear(); // Ensure proper color space
+      this.scene.background = backgroundColor;
+    } else {
+      this.scene.background = new THREE.Color(0x000811); // Dark space blue
+    }
   }
 
   /**
@@ -120,15 +178,36 @@ export class GameEngine {
    * Initialize WebGL renderer
    */
   private initRenderer(): void {
+    // iOS-specific WebGL context configuration
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
+      antialias: !isIOS, // Disable antialiasing on iOS to prevent rendering issues
       alpha: false,
+      premultipliedAlpha: false, // Critical for iOS - prevents white patches
+      preserveDrawingBuffer: false,
+      powerPreference: "high-performance",
     });
 
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // iOS-specific pixel ratio handling
+    const pixelRatio = isIOS
+      ? Math.min(window.devicePixelRatio, 2)
+      : Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(pixelRatio);
+
+    // Set clear color with explicit alpha
     this.renderer.setClearColor(0x000811, 1.0);
+
+    // iOS-specific renderer settings
+    if (isIOS) {
+      this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+      // Note: useLegacyLights removed in newer Three.js versions
+      // Modern Three.js uses physically correct lighting by default
+    }
   }
 
   /**

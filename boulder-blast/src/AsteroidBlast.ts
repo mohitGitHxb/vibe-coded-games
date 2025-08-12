@@ -15,6 +15,7 @@ import { SkyboxFactory } from "./libs/skybox_restructured/SkyboxFactory";
 import { SpaceSky } from "./libs/skybox_restructured/skyboxes/SpaceSky";
 import { HUDManager } from "./utils/HUDManager";
 import type { GameStats, PowerUpStatus } from "./utils/HUDManager";
+import { IOSDebugger } from "./utils/IOSDebugger";
 import {
   ParticleFactory,
   FireExplosion,
@@ -72,6 +73,20 @@ export class AsteroidBlast extends GameEngine {
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
+
+    // iOS debugging and fixes
+    if (IOSDebugger.isIOS()) {
+      console.log("📱 iOS device detected - applying fixes");
+      IOSDebugger.logIOSDebugInfo();
+      IOSDebugger.applyIOSFixes(canvas);
+
+      // Check for WebGL issues
+      const webglCheck = IOSDebugger.checkWebGLCompatibility(canvas);
+      if (webglCheck.issues.length > 0) {
+        console.warn("⚠️ iOS WebGL Issues detected:", webglCheck.issues);
+      }
+    }
+
     this.inputManager = InputManager.getInstance();
     this.skyboxFactory = new SkyboxFactory();
     this.particleFactory = new ParticleFactory(this.getScene());
@@ -495,18 +510,67 @@ export class AsteroidBlast extends GameEngine {
    */
   private async setupEnvironment(): Promise<void> {
     try {
-      // Use proper SpaceSky with animated starfield for space theme
-      const spaceSky = await this.skyboxFactory.create(new SpaceSky());
-      this.skyboxFactory.applySkyboxToScene(this.getScene(), spaceSky);
+      // Detect iOS for simplified skybox
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+        !(window as any).MSStream;
 
-      console.log("🌌 SpaceSky with animated starfield applied");
+      if (isIOS) {
+        console.log("📱 iOS detected - using simplified space environment");
+        // Use simpler background for iOS to prevent rendering issues
+        this.getScene().background = new THREE.Color(0x000811);
+
+        // Add simple starfield for iOS
+        this.createSimpleStarfield();
+      } else {
+        // Use full SpaceSky for other devices
+        const spaceSky = await this.skyboxFactory.create(new SpaceSky());
+        this.skyboxFactory.applySkyboxToScene(this.getScene(), spaceSky);
+        console.log("🌌 Full SpaceSky with animated starfield applied");
+      }
 
       // Note: For 2D gameplay, we keep minimal lighting
       // The sprites will handle their own visual appearance
     } catch (error) {
       console.warn("⚠️ Environment setup failed:", error);
-      // Continue without environment - game is still playable
+      // Fallback to simple background
+      this.getScene().background = new THREE.Color(0x000811);
+      this.createSimpleStarfield();
     }
+  }
+
+  /**
+   * Create a simple starfield for iOS devices or as fallback
+   */
+  private createSimpleStarfield(): void {
+    const starGeometry = new THREE.BufferGeometry();
+    const starPositions: number[] = [];
+
+    // Create fewer, simpler stars for iOS
+    for (let i = 0; i < 500; i++) {
+      const x = (Math.random() - 0.5) * 4000;
+      const y = (Math.random() - 0.5) * 4000;
+      const z = (Math.random() - 0.5) * 4000;
+      starPositions.push(x, y, z);
+    }
+
+    starGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(starPositions, 3)
+    );
+
+    const starMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 2,
+      sizeAttenuation: false,
+      transparent: true,
+      opacity: 0.8,
+    });
+
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    this.getScene().add(stars);
+
+    console.log("✨ Simple starfield created for iOS compatibility");
   }
   /**
    * Handle input for spaceship movement (keyboard and touch)
